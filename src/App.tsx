@@ -242,30 +242,31 @@ export default function App() {
       </AnimatePresence>
 
       <header className="h-14 shrink-0 border-b border-black/10 dark:border-white/5 flex items-center justify-between px-4 md:px-6 bg-white/80 dark:bg-[#09090B]/80 backdrop-blur-md z-40 transition-colors duration-300">
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-3">
           <img src="https://i.ibb.co/hJrGsCkQ/logo-and-text.png" alt="RailScope Logo" className="h-8 dark:invert" />
+          <div className="h-4 w-px bg-black/10 dark:bg-white/10 hidden sm:block mx-1"></div>
+          <div className="flex items-center gap-2">
+            <a 
+              href="https://github.com/Chimthuwu/Railscope/releases/download/v1/Railscope-Android.apk" 
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-1.5 text-xs font-bold bg-slate-100 hover:bg-slate-200 dark:bg-white/10 dark:hover:bg-white/20 text-slate-700 dark:text-slate-200 px-3 py-1.5 rounded-full transition-colors"
+              title="Download Android APK"
+            >
+              <Download size={14} />
+              <span className="hidden sm:inline">Android</span>
+            </a>
+            <button 
+              onClick={handleInstallApp}
+              className="flex items-center gap-1.5 text-xs font-bold bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded-full transition-colors shadow-sm"
+              title="Install RailScope as Desktop / Mobile App"
+            >
+              <Monitor size={14} />
+              <span className="hidden sm:inline">Install App</span>
+            </button>
+          </div>
         </div>
-        <div className="flex items-center gap-2">
-          <a 
-            href="https://github.com/Chimthuwu/Railscope/releases/download/v1/Railscope-Android.apk" 
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex items-center gap-1.5 text-xs font-bold bg-slate-100 hover:bg-slate-200 dark:bg-white/10 dark:hover:bg-white/20 text-slate-700 dark:text-slate-200 px-3 py-1.5 rounded-full transition-colors"
-            title="Download Android APK"
-          >
-            <Download size={14} />
-            <span className="hidden sm:inline">Android</span>
-          </a>
-          <button 
-            onClick={handleInstallApp}
-            className="flex items-center gap-1.5 text-xs font-bold bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded-full transition-colors shadow-sm"
-            title="Install RailScope as Desktop / Mobile App"
-          >
-            <Monitor size={14} />
-            <span className="hidden sm:inline">Install App</span>
-          </button>
-          <ThemeToggle />
-        </div>
+        <ThemeToggle />
       </header>
 
       {/* Main Content Area */}
