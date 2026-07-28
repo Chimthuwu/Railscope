@@ -259,7 +259,7 @@ export default function App() {
               <span className="hidden sm:inline">Android</span>
             </a>
             <a 
-              href="https://github.com/Chimthuwu/Railscope/releases/download/fushigi/RailScope-Windows-Setup%201.0.0.exe" 
+              href="https://github.com/Chimthuwu/Railscope/releases/download/fushigi/RailScope-Windows-Setup.1.0.0.exe" 
               target="_blank"
               rel="noopener noreferrer"
               className="flex items-center gap-1.5 text-xs font-bold bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded-full transition-colors shadow-sm"
