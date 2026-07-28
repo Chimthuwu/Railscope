@@ -8,6 +8,7 @@ function createWindow() {
     minWidth: 800,
     minHeight: 600,
     title: 'RailScope',
+    icon: path.join(__dirname, '../public/icon.png'),
     autoHideMenuBar: true,
     webPreferences: {
       nodeIntegration: false,

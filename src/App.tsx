@@ -50,6 +50,30 @@ export default function App() {
     return saved ? JSON.parse(saved) : [];
   });
   const [searchQuery, setSearchQuery] = useState("");
+  const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
+
+  useEffect(() => {
+    const handleBeforeInstall = (e: Event) => {
+      e.preventDefault();
+      setDeferredPrompt(e);
+    };
+    window.addEventListener('beforeinstallprompt', handleBeforeInstall);
+    return () => window.removeEventListener('beforeinstallprompt', handleBeforeInstall);
+  }, []);
+
+  const handleInstallApp = () => {
+    if (deferredPrompt) {
+      deferredPrompt.prompt();
+      deferredPrompt.userChoice.then((choice: any) => {
+        if (choice.outcome === 'accepted') {
+          console.log('App installed');
+        }
+        setDeferredPrompt(null);
+      });
+    } else {
+      alert("To install RailScope as an App on your desktop/mobile:\n\n1. Click your browser menu (3 dots or Install icon near the address bar).\n2. Click 'Install RailScope' or 'Install page as app'.");
+    }
+  };
 
   const [searchResults, setSearchResults] = useState<any[]>([]);
   const [searching, setSearching] = useState(false);
@@ -203,16 +227,14 @@ export default function App() {
             <Download size={14} />
             <span className="hidden sm:inline">Android</span>
           </a>
-          <a 
-            href="https://github.com/Chimthuwu/Railscope/releases" 
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex items-center gap-1.5 text-xs font-bold bg-slate-100 hover:bg-slate-200 dark:bg-white/10 dark:hover:bg-white/20 text-slate-700 dark:text-slate-200 px-3 py-1.5 rounded-full transition-colors"
-            title="Download Desktop App from GitHub Releases"
+          <button 
+            onClick={handleInstallApp}
+            className="flex items-center gap-1.5 text-xs font-bold bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded-full transition-colors shadow-sm"
+            title="Install RailScope as Desktop / Mobile App"
           >
             <Monitor size={14} />
-            <span className="hidden sm:inline">Windows</span>
-          </a>
+            <span className="hidden sm:inline">Install App</span>
+          </button>
           <ThemeToggle />
         </div>
       </header>

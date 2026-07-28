@@ -24,6 +24,7 @@
       "electron/**/*"
     ],
     "win": {
+      "icon": "public/icon.png",
       "target": [
         "nsis",
         "portable"
