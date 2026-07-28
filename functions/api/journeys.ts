@@ -31,10 +31,33 @@ export async function onRequest(context: any) {
     
     if (!res.ok) throw new Error("TFNSW API Error");
     const data = await res.json();
-    
+    let journeys = data.journeys || [];
+    let isOvernightFallback = false;
+
+    // Overnight fallback: if no remaining services tonight (e.g. 1 AM), fetch upcoming morning services for tomorrow
+    if (journeys.length === 0) {
+      const tomorrow = new Date(d.getTime() + 24 * 60 * 60 * 1000);
+      const tYear = tomorrow.toLocaleDateString('en-AU', { timeZone: 'Australia/Sydney', year: 'numeric' });
+      const tMonth = tomorrow.toLocaleDateString('en-AU', { timeZone: 'Australia/Sydney', month: '2-digit' });
+      const tDay = tomorrow.toLocaleDateString('en-AU', { timeZone: 'Australia/Sydney', day: '2-digit' });
+      const tomorrowDate = `${tYear}${tMonth}${tDay}`;
+      
+      const fallbackUrl = `https://api.transport.nsw.gov.au/v1/tp/trip?outputFormat=rapidJSON&coordOutputFormat=EPSG:4326&depArrMacro=dep&itdDate=${tomorrowDate}&itdTime=0500&type_origin=stop&name_origin=${encodeURIComponent(origin)}&type_destination=stop&name_destination=${encodeURIComponent(destination)}&calcNumberOfTrips=8&TfNSWTR=true&includeCompleteStopSeq=true`;
+      
+      const fallbackRes = await fetch(fallbackUrl, {
+        headers: { Authorization: `apikey ${env.TFNSW_API_KEY}` },
+      });
+      if (fallbackRes.ok) {
+        const fallbackData = await fallbackRes.json();
+        journeys = fallbackData.journeys || [];
+        isOvernightFallback = true;
+      }
+    }
+
     return Response.json({
       status: "live",
-      journeys: data.journeys || []
+      journeys: journeys,
+      isOvernightFallback: isOvernightFallback
     });
   } catch (error) {
     return Response.json({ status: "error", error: "Failed to fetch journeys", journeys: [] });

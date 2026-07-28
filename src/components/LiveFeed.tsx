@@ -6,6 +6,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 export function LiveFeed({ station, toStation }: { station: any, toStation?: any }) {
   const [departures, setDepartures] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
+  const [isOvernight, setIsOvernight] = useState(false);
   
   const [selectedTrip, setSelectedTrip] = useState<any>(null);
   const [tripStops, setTripStops] = useState<any[]>([]);
@@ -29,6 +30,7 @@ export function LiveFeed({ station, toStation }: { station: any, toStation?: any
         })
         .then((data) => {
           if (data.journeys) {
+            setIsOvernight(!!data.isOvernightFallback);
             const mapped = data.journeys.map((j: any) => {
               const leg = j.legs?.find((l: any) => {
                 const pClass = l.transportation?.product?.class;
@@ -68,6 +70,7 @@ export function LiveFeed({ station, toStation }: { station: any, toStation?: any
         })
         .then((data) => {
           if (data.events) {
+            setIsOvernight(!!data.isOvernightFallback);
             setDepartures(data.events);
           }
           setLoading(false);
@@ -238,6 +241,13 @@ export function LiveFeed({ station, toStation }: { station: any, toStation?: any
               </div>
             )}
             
+            {isOvernight && departures.length > 0 && (
+              <div className="flex items-center gap-2 p-3 bg-amber-500/10 border border-amber-500/20 rounded-xl text-amber-600 dark:text-amber-400 text-xs font-semibold">
+                <span className="text-base leading-none">🌙</span>
+                <span>Late-night services ended. Showing first upcoming morning services.</span>
+              </div>
+            )}
+
             {station && departures.length === 0 && !loading && (
               <div className="text-center text-slate-500 text-xs py-8 px-4 bg-black/5 dark:bg-white/5 rounded-xl border border-black/5 dark:border-white/5">
                 No departures found for {station.name}

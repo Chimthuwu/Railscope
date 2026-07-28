@@ -154,9 +154,34 @@ async function startServer() {
         headers: { Authorization: `apikey ${apiKey}` },
       });
 
+      let events = response.data?.stopEvents || [];
+      let isOvernightFallback = false;
+
+      if (events.length === 0) {
+        const d = new Date();
+        const tomorrow = new Date(d.getTime() + 24 * 60 * 60 * 1000);
+        const tYear = tomorrow.toLocaleDateString('en-AU', { timeZone: 'Australia/Sydney', year: 'numeric' });
+        const tMonth = tomorrow.toLocaleDateString('en-AU', { timeZone: 'Australia/Sydney', month: '2-digit' });
+        const tDay = tomorrow.toLocaleDateString('en-AU', { timeZone: 'Australia/Sydney', day: '2-digit' });
+        const tomorrowDate = `${tYear}${tMonth}${tDay}`;
+
+        const fallbackUrl = `https://api.transport.nsw.gov.au/v1/tp/departure_mon?outputFormat=rapidJSON&coordOutputFormat=EPSG:4326&mode=direct&type_dm=stop&name_dm=${encodeURIComponent(stopId)}&departureMonitorMacro=true&TfNSWTR=true&itdDate=${tomorrowDate}&itdTime=0500&version=10.2.1.42`;
+
+        try {
+          const fallbackRes = await axios.get(fallbackUrl, {
+            headers: { Authorization: `apikey ${apiKey}` },
+          });
+          events = fallbackRes.data?.stopEvents || [];
+          isOvernightFallback = true;
+        } catch (e) {
+          console.error("Fallback departures error", e);
+        }
+      }
+
       res.json({
         status: "live",
-        events: response.data?.stopEvents || []
+        events: events,
+        isOvernightFallback: isOvernightFallback
       });
     } catch (error) {
       console.log("[Info] Departures unavailable:", error instanceof Error ? error.message : "Unknown");
@@ -195,9 +220,33 @@ async function startServer() {
         headers: { Authorization: `apikey ${apiKey}` },
       });
 
+      let journeys = response.data?.journeys || [];
+      let isOvernightFallback = false;
+
+      if (journeys.length === 0) {
+        const tomorrow = new Date(d.getTime() + 24 * 60 * 60 * 1000);
+        const tYear = tomorrow.toLocaleDateString('en-AU', { timeZone: 'Australia/Sydney', year: 'numeric' });
+        const tMonth = tomorrow.toLocaleDateString('en-AU', { timeZone: 'Australia/Sydney', month: '2-digit' });
+        const tDay = tomorrow.toLocaleDateString('en-AU', { timeZone: 'Australia/Sydney', day: '2-digit' });
+        const tomorrowDate = `${tYear}${tMonth}${tDay}`;
+
+        const fallbackUrl = `https://api.transport.nsw.gov.au/v1/tp/trip?outputFormat=rapidJSON&coordOutputFormat=EPSG:4326&depArrMacro=dep&itdDate=${tomorrowDate}&itdTime=0500&type_origin=stop&name_origin=${encodeURIComponent(origin as string)}&type_destination=stop&name_destination=${encodeURIComponent(destination as string)}&calcNumberOfTrips=8&TfNSWTR=true&includeCompleteStopSeq=true`;
+
+        try {
+          const fallbackRes = await axios.get(fallbackUrl, {
+            headers: { Authorization: `apikey ${apiKey}` },
+          });
+          journeys = fallbackRes.data?.journeys || [];
+          isOvernightFallback = true;
+        } catch (e) {
+          console.error("Fallback journeys error", e);
+        }
+      }
+
       res.json({
         status: "live",
-        journeys: response.data?.journeys || []
+        journeys: journeys,
+        isOvernightFallback: isOvernightFallback
       });
     } catch (error) {
       console.log("[Info] Journeys unavailable:", error instanceof Error ? error.message : "Unknown");
