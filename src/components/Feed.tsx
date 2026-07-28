@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { auth, db } from "../lib/firebase";
-import { GoogleAuthProvider, signInWithPopup, signInAnonymously, onAuthStateChanged, signOut, User } from "firebase/auth";
+import { GoogleAuthProvider, signInWithPopup, signInWithRedirect, signInAnonymously, onAuthStateChanged, signOut, User } from "firebase/auth";
 import { collection, query, orderBy, onSnapshot, addDoc, serverTimestamp, doc, runTransaction, getDoc, setDoc, deleteDoc, writeBatch } from "firebase/firestore";
 import { Image as ImageIcon, Send, Loader2, LogIn, LogOut, Heart, Trash2 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
@@ -46,8 +46,20 @@ export function Feed() {
     try {
       const provider = new GoogleAuthProvider();
       await signInWithPopup(auth, provider);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Login failed:", error);
+      if (error?.code === 'auth/popup-blocked' || error?.code === 'auth/popup-closed-by-user') {
+        try {
+          const provider = new GoogleAuthProvider();
+          await signInWithRedirect(auth, provider);
+        } catch (redirectError) {
+          console.error("Redirect login failed:", redirectError);
+        }
+      } else if (error?.code === 'auth/unauthorized-domain') {
+        alert("Firebase Auth Error: Please add your domain (e.g. railscope.pages.dev) to 'Authorized Domains' in your Firebase Console -> Authentication -> Settings.");
+      } else {
+        alert(`Sign in error: ${error?.message || "Failed to sign in"}`);
+      }
     }
   };
 
