@@ -4,7 +4,7 @@ import { useVirtualizer } from "@tanstack/react-virtual";
 import { TrainMap } from "./components/Map";
 import { LiveFeed as LiveFeedSection } from "./components/LiveFeed";
 import { Feed } from "./components/Feed";
-import { Search, Train, Heart, Map as MapIcon, MapPin, ArrowLeft, Home, Sun, Moon, ArrowUpDown, MessageSquare, Download } from "lucide-react";
+import { Search, Train, Heart, Map as MapIcon, MapPin, ArrowLeft, Home, Sun, Moon, ArrowUpDown, MessageSquare, Download, Monitor } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { stations } from "./data/stations";
 import { motion, AnimatePresence } from "motion/react";
@@ -200,7 +200,16 @@ export default function App() {
             title="Download Android APK"
           >
             <Download size={14} />
-            <span className="hidden sm:inline">Android App</span>
+            <span className="hidden sm:inline">Android</span>
+          </a>
+          <a 
+            href="/railscope-desktop.exe" 
+            download="railscope-desktop.exe"
+            className="flex items-center gap-1.5 text-xs font-bold bg-slate-100 hover:bg-slate-200 dark:bg-white/10 dark:hover:bg-white/20 text-slate-700 dark:text-slate-200 px-3 py-1.5 rounded-full transition-colors"
+            title="Download Windows App"
+          >
+            <Monitor size={14} />
+            <span className="hidden sm:inline">Windows</span>
           </a>
           <ThemeToggle />
         </div>
