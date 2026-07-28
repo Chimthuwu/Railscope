@@ -423,49 +423,31 @@ export default function App() {
                             }}
                           >
                             <div className="flex items-center gap-2 group border border-transparent hover:border-black/5 dark:hover:border-white/5 hover:bg-slate-50 dark:hover:bg-white/5 rounded-xl transition-colors h-[68px]">
-                              <button 
-                                onPointerDown={(e) => {
-                                  e.preventDefault(); // Crucial for iOS: prevents keyboard dismiss from swallowing the tap
-                                  if (!fromStation) {
-                                    setFromStation(s);
-                                  } else {
-                                    setToStation(s);
-                                  }
-                                  setSearchQuery("");
-                                }}
-                                onClick={() => {
-                                  if (!fromStation) {
-                                    setFromStation(s);
-                                  } else {
-                                    setToStation(s);
-                                  }
-                                  setSearchQuery("");
-                                }}
-                                className="flex-1 flex items-center gap-3 p-3.5 text-left h-full select-none min-w-0"
-                              >
-                                {(() => {
-                                  const lineCode = STATION_PRIMARY_LINE[s.name.toUpperCase()];
-                                  const lineMeta = lineCode ? LINE_CONFIGS[lineCode] : LINE_CONFIGS["T2"];
-                                  return (
-                                    <>
-                                      <div 
-                                        className="w-9 h-9 rounded-full flex items-center justify-center transition-colors shrink-0 font-bold text-[10px]"
-                                        style={{ backgroundColor: `${lineMeta.color}20`, color: lineMeta.color }}
-                                      >
-                                        <Train size={16} />
-                                      </div>
-                                      <div className="flex flex-col min-w-0 flex-1">
-                                        <span className="text-slate-700 dark:text-slate-200 font-medium text-base group-hover:text-black dark:group-hover:text-white transition-colors truncate">{s.name}</span>
-                                        {lineCode && (
-                                          <span className="text-[9px] font-extrabold uppercase tracking-widest leading-none w-fit px-1.5 py-0.5 rounded mt-0.5 border" style={{ backgroundColor: `${lineMeta.color}15`, borderColor: `${lineMeta.color}30`, color: lineMeta.color }}>
-                                            {lineCode} {lineMeta.name}
-                                          </span>
-                                        )}
-                                      </div>
-                                    </>
-                                  );
-                                })()}
-                              </button>
+                               <button 
+                                 onPointerDown={(e) => {
+                                   e.preventDefault(); // Crucial for iOS: prevents keyboard dismiss from swallowing the tap
+                                   if (!fromStation) {
+                                     setFromStation(s);
+                                   } else {
+                                     setToStation(s);
+                                   }
+                                   setSearchQuery("");
+                                 }}
+                                 onClick={() => {
+                                   if (!fromStation) {
+                                     setFromStation(s);
+                                   } else {
+                                     setToStation(s);
+                                   }
+                                   setSearchQuery("");
+                                 }}
+                                 className="flex-1 flex items-center gap-4 p-3.5 text-left h-full select-none"
+                               >
+                                 <div className="w-10 h-10 rounded-full bg-slate-100 dark:bg-white/5 flex items-center justify-center text-slate-500 dark:text-slate-400 group-hover:bg-blue-500/10 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors shrink-0">
+                                   <Train size={18} />
+                                 </div>
+                                 <span className="text-slate-700 dark:text-slate-200 font-medium text-base group-hover:text-black dark:group-hover:text-white transition-colors truncate">{s.name}</span>
+                               </button>
                               <button 
                                 onClick={() => toggleFavourite(s)}
                                 title="Toggle Favourite"
