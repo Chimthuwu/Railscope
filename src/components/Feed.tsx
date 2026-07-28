@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { auth, db } from "../lib/firebase";
 import { GoogleAuthProvider, signInWithPopup, signInWithRedirect, signInAnonymously, onAuthStateChanged, signOut, User } from "firebase/auth";
 import { collection, query, orderBy, onSnapshot, addDoc, serverTimestamp, doc, runTransaction, getDoc, setDoc, deleteDoc, writeBatch } from "firebase/firestore";
-import { Image as ImageIcon, Send, Loader2, LogIn, LogOut, Heart, Trash2 } from "lucide-react";
+import { Image as ImageIcon, Send, Loader2, LogIn, LogOut, Heart, Trash2, Mic } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { Input } from "@/components/ui/input";
 
@@ -13,6 +13,7 @@ export function Feed() {
   const [newPost, setNewPost] = useState("");
   const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isListening, setIsListening] = useState(false);
   const [isAnonymous, setIsAnonymous] = useState(false);
   const [adminTapCount, setAdminTapCount] = useState(0);
   const [showAdmin, setShowAdmin] = useState(false);
@@ -61,6 +62,30 @@ export function Feed() {
         alert(`Sign in error: ${error?.message || "Failed to sign in"}`);
       }
     }
+  };
+
+  const handleVoiceDictation = () => {
+    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+      alert("Voice dictation is not supported in this browser.");
+      return;
+    }
+
+    const recognition = new SpeechRecognition();
+    recognition.continuous = false;
+    recognition.interimResults = false;
+    recognition.lang = "en-AU";
+
+    recognition.onstart = () => setIsListening(true);
+    recognition.onend = () => setIsListening(false);
+    recognition.onerror = () => setIsListening(false);
+
+    recognition.onresult = (event: any) => {
+      const transcript = event.results[0][0].transcript;
+      setNewPost(prev => prev ? `${prev} ${transcript}` : transcript);
+    };
+
+    recognition.start();
   };
 
   const handleLogout = () => {

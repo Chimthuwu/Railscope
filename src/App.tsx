@@ -4,7 +4,7 @@ import { useVirtualizer } from "@tanstack/react-virtual";
 import { TrainMap } from "./components/Map";
 import { LiveFeed as LiveFeedSection } from "./components/LiveFeed";
 import { Feed } from "./components/Feed";
-import { Search, Train, Heart, Map as MapIcon, MapPin, ArrowLeft, Home, Sun, Moon, ArrowUpDown, MessageSquare, Download, Monitor } from "lucide-react";
+import { Search, Train, Heart, Map as MapIcon, MapPin, ArrowLeft, Home, Sun, Moon, ArrowUpDown, MessageSquare, Download, Monitor, Mic } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { stations } from "./data/stations";
 import { motion, AnimatePresence } from "motion/react";
@@ -50,6 +50,7 @@ export default function App() {
     return saved ? JSON.parse(saved) : [];
   });
   const [searchQuery, setSearchQuery] = useState("");
+  const [isListening, setIsListening] = useState(false);
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
 
   useEffect(() => {
@@ -73,6 +74,34 @@ export default function App() {
     } else {
       alert("To install RailScope as an App on your desktop/mobile:\n\n1. Click your browser menu (3 dots or Install icon near the address bar).\n2. Click 'Install RailScope' or 'Install page as app'.");
     }
+  };
+
+  const handleVoiceSearch = () => {
+    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+      alert("Voice search is not supported in this browser. Please use Chrome, Edge, or Safari.");
+      return;
+    }
+
+    const recognition = new SpeechRecognition();
+    recognition.continuous = false;
+    recognition.interimResults = false;
+    recognition.lang = "en-AU";
+
+    recognition.onstart = () => setIsListening(true);
+    recognition.onend = () => setIsListening(false);
+    recognition.onerror = (e: any) => {
+      console.error("Speech error", e);
+      setIsListening(false);
+    };
+
+    recognition.onresult = (event: any) => {
+      const transcript = event.results[0][0].transcript;
+      const cleaned = transcript.replace(/[.,\/#!$%\^&\*;:{}=\-_`~()]/g, "").trim();
+      setSearchQuery(cleaned);
+    };
+
+    recognition.start();
   };
 
   const [searchResults, setSearchResults] = useState<any[]>([]);
@@ -343,11 +372,19 @@ export default function App() {
                   <div className="relative shadow-sm dark:shadow-lg dark:shadow-black/20">
                     <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500" size={18} />
                     <Input 
-                      className="pl-12 h-14 bg-white dark:bg-[#1A1A24] border-black/10 dark:border-white/10 text-black dark:text-white rounded-xl text-base shadow-sm focus-visible:ring-blue-500/50 transition-colors duration-300"
+                      className="pl-12 pr-12 h-14 bg-white dark:bg-[#1A1A24] border-black/10 dark:border-white/10 text-black dark:text-white rounded-xl text-base shadow-sm focus-visible:ring-blue-500/50 transition-colors duration-300"
                       placeholder={!fromStation ? "Search your origin station..." : "Search your destination..."}
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
                     />
+                    <button
+                      type="button"
+                      onClick={handleVoiceSearch}
+                      className={`absolute right-3 top-1/2 -translate-y-1/2 p-2 rounded-full transition-all ${isListening ? 'bg-red-500 text-white animate-pulse scale-110 shadow-lg shadow-red-500/50' : 'text-slate-400 hover:text-blue-500 dark:hover:text-blue-400 hover:bg-slate-100 dark:hover:bg-white/5'}`}
+                      title={isListening ? "Listening... Speak station name" : "Voice Search (Speak station name)"}
+                    >
+                      <Mic size={18} />
+                    </button>
                   </div>
                 </div>
 
