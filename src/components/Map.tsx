@@ -72,24 +72,29 @@ const createCustomIcon = (routeId: string, type?: string) => {
   const bgColor = routeInfo.color;
   
   const iconMarkup = renderToStaticMarkup(
-    <div style={{
-      backgroundColor: bgColor,
-      width: "28px", height: "28px",
-      borderRadius: "50%", display: "flex",
-      alignItems: "center", justifyContent: "center",
-      border: "2px solid white", boxShadow: "0 2px 5px rgba(0,0,0,0.3)",
-      color: "white"
-    }}>
-      {type === "bus" ? <Bus size={16} strokeWidth={2.5} /> : <Train size={16} strokeWidth={2.5} />}
+    <div style={{ position: "relative", width: "32px", height: "32px" }}>
+      <div className="live-pulse-beacon" style={{ backgroundColor: bgColor }}></div>
+      <div style={{
+        position: "relative",
+        zIndex: 2,
+        backgroundColor: bgColor,
+        width: "32px", height: "32px",
+        borderRadius: "50%", display: "flex",
+        alignItems: "center", justifyContent: "center",
+        border: "2px solid white", boxShadow: "0 2px 8px rgba(0,0,0,0.4)",
+        color: "white"
+      }}>
+        {type === "bus" ? <Bus size={18} strokeWidth={2.5} /> : <Train size={18} strokeWidth={2.5} />}
+      </div>
     </div>
   );
 
   return L.divIcon({
     html: iconMarkup,
     className: 'custom-train-marker',
-    iconSize: [28, 28],
-    iconAnchor: [14, 14],
-    popupAnchor: [0, -14]
+    iconSize: [32, 32],
+    iconAnchor: [16, 16],
+    popupAnchor: [0, -16]
   });
 };
 
@@ -273,8 +278,7 @@ export function TrainMap({ searchQuery = "", center }: { searchQuery?: string, c
         <MapUpdater center={center} />
         <TileLayer
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
-          url={resolvedTheme === 'dark' ? "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png" : "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"}
-          className={resolvedTheme === 'dark' ? "map-tiles-night" : ""}
+          url={resolvedTheme === 'dark' ? "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png" : "https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"}
         />
 
         {/* Render Stations / Stops */}
