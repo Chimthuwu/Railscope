@@ -1,0 +1,16 @@
+{
+  "short_name": "RailScope",
+  "name": "RailScope - Sydney Trains Live Planner",
+  "icons": [
+    {
+      "src": "/icon.png",
+      "type": "image/png",
+      "sizes": "512x512",
+      "purpose": "any maskable"
+    }
+  ],
+  "start_url": "/",
+  "background_color": "#09090b",
+  "theme_color": "#09090b",
+  "display": "standalone"
+}

@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
-import { Navigation, Activity, Train, ChevronLeft, MapPin } from "lucide-react";
+import { Navigation, Activity, Train, ChevronLeft, MapPin, Bus } from "lucide-react";
+import { getServiceLineMeta } from "../lib/lineColors";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ScrollArea } from "@/components/ui/scroll-area";
 
@@ -259,6 +260,8 @@ export function LiveFeed({ station, toStation }: { station: any, toStation?: any
               const isLate = d.departureTimeEstimated && d.departureTimePlanned && new Date(d.departureTimeEstimated).getTime() > new Date(d.departureTimePlanned).getTime() + 60000;
               const status = isLate ? "Delayed" : "On Time";
               
+              const meta = getServiceLineMeta(d, station?.name);
+
               let platform = d.location?.properties?.platformName;
               if (!platform) {
                   const m = d.location?.name?.match(/Platform (\d+)/i);
@@ -275,11 +278,22 @@ export function LiveFeed({ station, toStation }: { station: any, toStation?: any
                 <div key={i} onClick={() => handleSelectTrip(d)} className="flex items-center justify-between bg-white dark:bg-white/[0.03] p-3.5 rounded-xl hover:bg-slate-50 dark:hover:bg-white/[0.06] transition-colors cursor-pointer border border-black/10 dark:border-white/[0.05] hover:border-black/20 dark:hover:border-white/10 group shadow-sm dark:shadow-none">
                   <div className="flex items-center gap-3.5 min-w-0">
                     <div className="w-11 text-center font-bold text-slate-800 dark:text-slate-200 text-[13px] shrink-0 font-mono tracking-tighter">{formatTime(time)}</div>
-                    <div className={"w-0.5 h-6 rounded-full transition-colors shrink-0 " + (isLate ? "bg-amber-500" : "bg-blue-500")}></div>
+                    <div className="w-1 h-7 rounded-full shrink-0 transition-colors" style={{ backgroundColor: isLate ? '#f59e0b' : meta.color }}></div>
                     <div className="flex flex-col min-w-0">
-                      <div className="text-xs text-black dark:text-white font-semibold truncate sm:max-w-[140px] max-w-[110px]">{d.transportation?.destination?.name?.replace(/ Station.*/, '') || d.transportation?.name || d.transport?.destination?.name?.replace(/ Station.*/, '') || d.transport?.name}</div>
-                      <div className="flex items-center mt-1">
-                        <span className="px-1.5 py-0.5 bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-500/20 rounded text-[9px] font-bold uppercase tracking-widest leading-none">
+                      <div className="text-xs text-black dark:text-white font-semibold truncate sm:max-w-[140px] max-w-[110px]">
+                        {d.transportation?.destination?.name?.replace(/ Station.*/, '') || d.transportation?.name || d.transport?.destination?.name?.replace(/ Station.*/, '') || d.transport?.name}
+                      </div>
+                      <div className="flex items-center gap-1.5 mt-1">
+                        {meta.isBus ? (
+                          <span className="flex items-center gap-1 px-1.5 py-0.5 bg-cyan-500/15 border border-cyan-500/30 text-cyan-600 dark:text-cyan-400 rounded text-[9px] font-extrabold uppercase tracking-widest leading-none">
+                            <Bus size={10} /> BUS
+                          </span>
+                        ) : (
+                          <span className="flex items-center gap-1 px-1.5 py-0.5 rounded text-[9px] font-extrabold uppercase tracking-widest leading-none border" style={{ backgroundColor: `${meta.color}20`, borderColor: `${meta.color}40`, color: meta.color }}>
+                            <Train size={10} /> {meta.code}
+                          </span>
+                        )}
+                        <span className="px-1.5 py-0.5 bg-slate-100 dark:bg-white/10 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-white/10 rounded text-[9px] font-bold uppercase tracking-widest leading-none">
                           Platform {platform}
                         </span>
                       </div>
