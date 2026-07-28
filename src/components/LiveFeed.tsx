@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { API_BASE } from "../lib/config";
 import { Navigation, Activity, Train, ChevronLeft, MapPin, Bus } from "lucide-react";
 import { getServiceLineMeta } from "../lib/lineColors";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -20,7 +21,7 @@ export function LiveFeed({ station, toStation }: { station: any, toStation?: any
     if (toStation) {
       const originParam = encodeURIComponent(String(station.tfnsw_id || station.id));
       const destParam = encodeURIComponent(String(toStation.tfnsw_id || toStation.id));
-      fetch(`/api/journeys?origin=${originParam}&destination=${destParam}`)
+      fetch(`${API_BASE}/api/journeys?origin=${originParam}&destination=${destParam}`)
         .then((r) => {
           if (!r.ok) throw new Error(`HTTP error! status: ${r.status}`);
           const contentType = r.headers.get("content-type");
@@ -60,7 +61,7 @@ export function LiveFeed({ station, toStation }: { station: any, toStation?: any
         });
     } else {
       const stopParam = encodeURIComponent(String(station.tfnsw_id || station.id));
-      fetch(`/api/departures/${stopParam}`)
+      fetch(`${API_BASE}/api/departures/${stopParam}`)
         .then((r) => {
           if (!r.ok) throw new Error(`HTTP error! status: ${r.status}`);
           const contentType = r.headers.get("content-type");
@@ -117,7 +118,7 @@ export function LiveFeed({ station, toStation }: { station: any, toStation?: any
     const rtIdParam = encodeURIComponent(String(realtimeTripId));
     const gtfsIdParam = encodeURIComponent(String(gtfsTripId));
 
-    fetch(`/api/trip_details?origin=${originParam}&destination=${destParam}&date=${dateParam}&time=${timeParam}&realtimeTripId=${rtIdParam}&gtfsTripId=${gtfsIdParam}`)
+    fetch(`${API_BASE}/api/trip_details?origin=${originParam}&destination=${destParam}&date=${dateParam}&time=${timeParam}&realtimeTripId=${rtIdParam}&gtfsTripId=${gtfsIdParam}`)
       .then((r) => {
         if (!r.ok) throw new Error(`HTTP error! status: ${r.status}`);
         const contentType = r.headers.get("content-type");

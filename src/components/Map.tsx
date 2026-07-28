@@ -1,4 +1,5 @@
 import { useEffect, useState, useMemo } from "react";
+import { API_BASE } from "../lib/config";
 import { MapContainer, TileLayer, Marker, Popup, useMap, useMapEvents } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
@@ -195,7 +196,7 @@ export function TrainMap({ searchQuery = "", center }: { searchQuery?: string, c
     // Fetch initial data
     const fetchTrains = async () => {
       try {
-        const res = await fetch(`/api/vehicles?type=${vehicleTypeFilter}`);
+        const res = await fetch(`${API_BASE}/api/vehicles?type=${vehicleTypeFilter}`);
         const data = await res.json();
         if (data.entities) {
           setTrains(data.entities);

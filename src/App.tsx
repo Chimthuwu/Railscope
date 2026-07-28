@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { API_BASE } from './lib/config';
 import { useTheme } from "next-themes";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { TrainMap } from "./components/Map";
@@ -144,7 +145,7 @@ export default function App() {
 
     const timer = setTimeout(() => {
       setSearching(true);
-      fetch(`/api/stations?q=${encodeURIComponent(searchQuery)}`)
+      fetch(`${API_BASE}/api/stations?q=${encodeURIComponent(searchQuery)}`)
         .then(r => {
           if (!r.ok) throw new Error(`HTTP error! status: ${r.status}`);
           const contentType = r.headers.get("content-type");
