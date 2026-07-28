@@ -194,8 +194,9 @@ export default function App() {
         </div>
         <div className="flex items-center gap-2">
           <a 
-            href="/railscope.apk" 
-            download="railscope.apk"
+            href="https://github.com/Chimthuwu/Railscope/releases/download/v1/Railscope-Android.apk" 
+            target="_blank"
+            rel="noopener noreferrer"
             className="flex items-center gap-1.5 text-xs font-bold bg-slate-100 hover:bg-slate-200 dark:bg-white/10 dark:hover:bg-white/20 text-slate-700 dark:text-slate-200 px-3 py-1.5 rounded-full transition-colors"
             title="Download Android APK"
           >
@@ -203,10 +204,11 @@ export default function App() {
             <span className="hidden sm:inline">Android</span>
           </a>
           <a 
-            href="/railscope-desktop.exe" 
-            download="railscope-desktop.exe"
+            href="https://github.com/Chimthuwu/Railscope/releases" 
+            target="_blank"
+            rel="noopener noreferrer"
             className="flex items-center gap-1.5 text-xs font-bold bg-slate-100 hover:bg-slate-200 dark:bg-white/10 dark:hover:bg-white/20 text-slate-700 dark:text-slate-200 px-3 py-1.5 rounded-full transition-colors"
-            title="Download Windows App"
+            title="Download Desktop App from GitHub Releases"
           >
             <Monitor size={14} />
             <span className="hidden sm:inline">Windows</span>
