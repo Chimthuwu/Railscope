@@ -1,0 +1,39 @@
+{
+  "entities": {
+    "Post": {
+      "title": "Post",
+      "description": "A user post containing feedback or network updates.",
+      "type": "object",
+      "properties": {
+        "text": { "type": "string", "description": "The text content of the post." },
+        "imageUrl": { "type": "string", "description": "Optional image URL." },
+        "authorId": { "type": "string" },
+        "authorName": { "type": "string" },
+        "createdAt": { "type": "number", "description": "Timestamp" },
+        "likesCount": { "type": "number" },
+        "stationId": { "type": "string", "description": "Optional station context" }
+      },
+      "required": ["text", "authorId", "authorName", "createdAt", "likesCount"]
+    },
+    "Like": {
+      "title": "Like",
+      "description": "User like on a post.",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "createdAt": { "type": "number" }
+      },
+      "required": ["userId", "createdAt"]
+    }
+  },
+  "firestore": {
+    "/posts/{postId}": {
+      "schema": "Post",
+      "description": "Public posts."
+    },
+    "/posts/{postId}/likes/{userId}": {
+      "schema": "Like",
+      "description": "Likes for a specific post by userId."
+    }
+  }
+}

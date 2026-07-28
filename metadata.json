@@ -1,0 +1,6 @@
+{
+  "name": "RailScope Sydney",
+  "description": "A modern, real-time Sydney Trains monitoring platform with interactive maps and predictive commute tracking.",
+  "requestFramePermissions": ["geolocation"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

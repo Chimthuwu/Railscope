@@ -1,0 +1,100 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isFullyAuthenticated() {
+      return request.auth != null && request.auth.token.email_verified == true;
+    }
+
+    function isAdmin() {
+      return isFullyAuthenticated() && request.auth.token.email == 'chimske@gmail.com';
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+    
+    // VALIDATION BLUEPRINTS
+    function isValidPost(data) {
+      return data.keys().hasAll(['text', 'authorId', 'authorName', 'createdAt', 'likesCount']) &&
+             data.text is string && data.text.size() <= 2000 &&
+             data.authorId == request.auth.uid &&
+             data.authorName is string && data.authorName.size() <= 100 &&
+             data.createdAt is timestamp &&
+             data.likesCount is number &&
+             (data.keys().hasAll(['imageUrl']) ? (data.imageUrl is string && data.imageUrl.size() <= 1000000 && isFullyAuthenticated()) : true) &&
+             (data.keys().hasAll(['stationId']) ? (data.stationId is string && data.stationId.size() <= 128) : true);
+    }
+
+    function isValidLike(data) {
+      return data.keys().hasAll(['userId', 'createdAt']) && data.keys().size() == 2 &&
+             data.userId == request.auth.uid &&
+             data.createdAt is timestamp;
+    }
+
+    match /posts/{postId} {
+      // Allow read for everyone
+      allow read: if true;
+
+      // Allow create if user is signed in and payload is valid
+      allow create: if isSignedIn() &&
+                       isValidId(postId) &&
+                       isValidPost(incoming()) &&
+                       incoming().keys().size() <= 7 &&
+                       incoming().createdAt == request.time &&
+                       incoming().likesCount == 0;
+
+      // Allow update for likesCount (anyone signed in) OR text/imageUrl (author)
+      allow update: if isSignedIn() &&
+                       isValidId(postId) &&
+                       isValidPost(incoming()) &&
+                       incoming().authorId == existing().authorId &&
+                       incoming().createdAt == existing().createdAt &&
+                       (
+                         // Action: Author edits post
+                         (
+                           existing().authorId == request.auth.uid &&
+                           incoming().diff(existing()).affectedKeys().hasOnly(['text', 'imageUrl', 'stationId'])
+                         ) ||
+                         // Action: Someone likes/unlikes
+                         (
+                           incoming().diff(existing()).affectedKeys().hasOnly(['likesCount']) &&
+                           (incoming().likesCount == existing().likesCount + 1 || incoming().likesCount == existing().likesCount - 1)
+                         )
+                       );
+
+      // Allow delete only if author or admin
+      allow delete: if isSignedIn() && (existing().authorId == request.auth.uid || isAdmin());
+
+      match /likes/{userId} {
+        // Read public
+        allow read: if true;
+        
+        allow create: if isSignedIn() &&
+                         userId == request.auth.uid &&
+                         isValidLike(incoming()) &&
+                         incoming().createdAt == request.time &&
+                         existsAfter(/databases/$(database)/documents/posts/$(postId)); // atomicity
+
+        allow delete: if isSignedIn() && userId == request.auth.uid;
+      }
+    }
+  }
+}
