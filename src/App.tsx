@@ -4,7 +4,7 @@ import { useVirtualizer } from "@tanstack/react-virtual";
 import { TrainMap } from "./components/Map";
 import { LiveFeed as LiveFeedSection } from "./components/LiveFeed";
 import { Feed } from "./components/Feed";
-import { Search, Train, Heart, Map as MapIcon, MapPin, ArrowLeft, Home, Sun, Moon, ArrowUpDown, MessageSquare } from "lucide-react";
+import { Search, Train, Heart, Map as MapIcon, MapPin, ArrowLeft, Home, Sun, Moon, ArrowUpDown, MessageSquare, Download } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { stations } from "./data/stations";
 import { motion, AnimatePresence } from "motion/react";
@@ -188,12 +188,22 @@ export default function App() {
         )}
       </AnimatePresence>
 
-      {/* Header */}
       <header className="h-14 shrink-0 border-b border-black/10 dark:border-white/5 flex items-center justify-between px-4 md:px-6 bg-white/80 dark:bg-[#09090B]/80 backdrop-blur-md z-40 transition-colors duration-300">
         <div className="flex items-center gap-2">
           <img src="https://i.ibb.co/hJrGsCkQ/logo-and-text.png" alt="RailScope Logo" className="h-8 dark:invert" />
         </div>
-        <ThemeToggle />
+        <div className="flex items-center gap-2">
+          <a 
+            href="/railscope.apk" 
+            download="railscope.apk"
+            className="flex items-center gap-1.5 text-xs font-bold bg-slate-100 hover:bg-slate-200 dark:bg-white/10 dark:hover:bg-white/20 text-slate-700 dark:text-slate-200 px-3 py-1.5 rounded-full transition-colors"
+            title="Download Android APK"
+          >
+            <Download size={14} />
+            <span className="hidden sm:inline">Android App</span>
+          </a>
+          <ThemeToggle />
+        </div>
       </header>
 
       {/* Main Content Area */}
