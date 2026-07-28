@@ -257,14 +257,16 @@ export default function App() {
               <Download size={14} />
               <span className="hidden sm:inline">Android</span>
             </a>
-            <button 
-              onClick={handleInstallApp}
+            <a 
+              href="https://github.com/Chimthuwu/Railscope/releases/download/Window/RailScope.Setup.1.0.0.exe" 
+              target="_blank"
+              rel="noopener noreferrer"
               className="flex items-center gap-1.5 text-xs font-bold bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded-full transition-colors shadow-sm"
-              title="Install RailScope as Desktop / Mobile App"
+              title="Download Windows App"
             >
               <Monitor size={14} />
-              <span className="hidden sm:inline">Install App</span>
-            </button>
+              <span className="hidden sm:inline">Windows</span>
+            </a>
           </div>
         </div>
         <ThemeToggle />
