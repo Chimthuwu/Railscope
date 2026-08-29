@@ -3,11 +3,34 @@ import { VEHICLES_API_BASE, CARTO_API_KEY } from "../lib/config";
 import { MapContainer, TileLayer, Marker, Popup, useMap, useMapEvents } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
+import maplibregl from "maplibre-gl";
+import "maplibre-gl/dist/maplibre-gl.css";
+import "@maplibre/maplibre-gl-leaflet";
 import { Train, Bus, MapPin, Layers } from "lucide-react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { stations } from "../data/stations";
 import { useTheme } from "next-themes";
 import { StationInfoCard } from "./StationInfoCard";
+import { buildMapStyle } from "../lib/mapStyle";
+
+if (typeof window !== "undefined") (window as any).maplibregl = maplibregl;
+
+// Vector basemap (dark mode): CARTO free vector tiles rendered with our custom
+// MapLibre GL style — real road hierarchy, glow, colour. Sits in the tile pane
+// under all the Leaflet markers.
+function VectorBasemap() {
+  const map = useMap();
+  useEffect(() => {
+    const style = buildMapStyle();
+    // @ts-expect-error - plugin augments the L namespace at runtime
+    const gl = L.maplibreGL({ style, attribution: style.sources.carto.attribution });
+    gl.addTo(map);
+    return () => {
+      map.removeLayer(gl);
+    };
+  }, [map]);
+  return null;
+}
 
 // CARTO basemaps require a key (https://carto.com/basemaps/apikey); see config.ts.
 const cartoTiles = (style: string) =>
@@ -20,7 +43,7 @@ const formatRoute = (routeId?: string, type?: string) => {
     // Clean up bus route ID (e.g. from "2502_840" to "Bus 840" or just use route ID smartly)
     // Sometimes bus route IDs are separated by underscores. The actual route number is often the last part.
     let number = routeId ? routeId.split('_').pop() : "Unknown";
-    return { name: `Bus ${number}`, color: "#00b5ef" }; // typical TfNSW bus colour
+    return { name: `Bus ${number}`, color: "#b794f6" }; // lavender — distinct from the cool basemap and every train-line colour
   }
 
   if (!routeId) return { name: "Unknown Route", color: "#333" };
@@ -73,28 +96,33 @@ const formatStop = (stopId?: string) => {
   return hasLower && right.length > 2 ? right : left;
 };
 
-// Custom HTML icon using Lucide icons.
-// A route-coloured train/bus glyph with a white halo so it reads as a vehicle
-// (not a blob) and sits close to the size of the station dots.
-const createCustomIcon = (routeId: string, type?: string) => {
+// zoom -> marker size: small & unobtrusive when zoomed out, normal when zoomed in
+const vehicleSizeForZoom = (z: number) => (z < 11 ? 12 : z < 13 ? 15 : z < 15 ? 18 : 22);
+
+// Custom HTML icon using Lucide icons — a route-coloured train/bus glyph with a
+// thin edge and a soft coloured glow (no heavy white fill).
+const createCustomIcon = (routeId: string, type: string | undefined, size: number) => {
   const routeInfo = formatRoute(routeId, type);
   const color = routeInfo.color;
-  const size = 20;
+  const beacon = Math.round(size * 0.8);
 
   const iconMarkup = renderToStaticMarkup(
     <div style={{ position: "relative", width: `${size}px`, height: `${size}px` }}>
-      <div className="live-pulse-beacon" style={{ backgroundColor: color }}></div>
+      <div
+        className="live-pulse-beacon"
+        style={{ backgroundColor: color, width: `${beacon}px`, height: `${beacon}px`, left: `${(size - beacon) / 2}px`, top: `${(size - beacon) / 2}px` }}
+      ></div>
       <div style={{
         position: "relative",
         zIndex: 2,
         width: `${size}px`, height: `${size}px`,
         display: "flex", alignItems: "center", justifyContent: "center",
         color: color,
-        filter: `drop-shadow(0 0 1.5px #fff) drop-shadow(0 0 1.5px #fff) drop-shadow(0 0 5px ${color}) drop-shadow(0 1px 2px rgba(0,0,0,0.55))`,
+        filter: `drop-shadow(0 0 0.5px rgba(255,255,255,0.7)) drop-shadow(0 0 3px ${color}) drop-shadow(0 1px 1.5px rgba(0,0,0,0.6))`,
       }}>
         {type === "bus"
-          ? <Bus size={size} strokeWidth={2.75} />
-          : <Train size={size} strokeWidth={2.75} />}
+          ? <Bus size={size} strokeWidth={2.5} />
+          : <Train size={size} strokeWidth={2.5} />}
       </div>
     </div>
   );
@@ -110,7 +138,7 @@ const createCustomIcon = (routeId: string, type?: string) => {
 
 const createStationIcon = (type: string, name: string, showText: boolean) => {
   const isBus = type === "bus";
-  const bgColor = isBus ? "#00b5ef" : "#f99d1c";
+  const bgColor = isBus ? "#b794f6" : "#f99d1c";
 
   // Using a very small dot for the station with the name next to it
   const iconMarkup = renderToStaticMarkup(
@@ -158,10 +186,10 @@ const createStationIcon = (type: string, name: string, showText: boolean) => {
 };
 
 const trainIconCache: Record<string, L.DivIcon> = {};
-const getTrainIcon = (routeId: string, type?: string) => {
-  const key = `${routeId}-${type}`;
+const getTrainIcon = (routeId: string, type: string | undefined, size: number) => {
+  const key = `${routeId}-${type}-${size}`;
   if (!trainIconCache[key]) {
-    trainIconCache[key] = createCustomIcon(routeId, type);
+    trainIconCache[key] = createCustomIcon(routeId, type, size);
   }
   return trainIconCache[key];
 };
@@ -405,7 +433,7 @@ export function TrainMap({ searchQuery = "", center, origin }: { searchQuery?: s
           </button>
           <button 
             onClick={() => setVehicleTypeFilter('buses')}
-            className={`px-3 py-1.5 rounded-lg text-xs font-semibold uppercase tracking-wider transition-colors flex items-center gap-1 ${vehicleTypeFilter === 'buses' ? 'bg-cyan-500/20 text-cyan-400' : 'text-slate-400 hover:text-slate-200'}`}
+            className={`px-3 py-1.5 rounded-lg text-xs font-semibold uppercase tracking-wider transition-colors flex items-center gap-1 ${vehicleTypeFilter === 'buses' ? 'bg-violet-500/20 text-violet-400' : 'text-slate-400 hover:text-slate-200'}`}
           >
             <Bus size={14} /> Buses
           </button>
@@ -443,16 +471,7 @@ export function TrainMap({ searchQuery = "", center, origin }: { searchQuery?: s
       >
         <MapController center={center} onZoom={setZoomLevel} />
         {premium ? (
-          <>
-            {/* geometry and labels on separate layers so the colour grade
-                (see .premium-map in index.css) only hits the geometry */}
-            <TileLayer
-              className="tiles-base"
-              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
-              url={cartoTiles('dark_nolabels')}
-            />
-            <TileLayer className="tiles-labels" url={cartoTiles('dark_only_labels')} />
-          </>
+          <VectorBasemap />
         ) : (
           <TileLayer
             attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
@@ -476,7 +495,7 @@ export function TrainMap({ searchQuery = "", center, origin }: { searchQuery?: s
         {filteredTrains.map((train, index) => {
           const pos = train.vehicle?.position;
           if (!pos?.latitude || !pos?.longitude) return null;
-          
+
           const vehicleType = train._type;
           const routeId = train.vehicle?.trip?.routeId;
           const trainId = vehicleId(train, index);
@@ -484,12 +503,12 @@ export function TrainMap({ searchQuery = "", center, origin }: { searchQuery?: s
           const currentStop = formatStop(stopId);
           const routeInfo = formatRoute(routeId, vehicleType);
           const speed = train.vehicle?.position?.speed ? Math.round(train.vehicle.position.speed * 3.6) : null;
-          
+
           return (
             <Marker
               key={trainId}
               position={firstPos.current.get(trainId) ?? [pos.latitude, pos.longitude]}
-              icon={getTrainIcon(routeId, vehicleType)}
+              icon={getTrainIcon(routeId, vehicleType, vehicleSizeForZoom(zoomLevel))}
               ref={getRefSetter(trainId)}
             >
             <Popup className="rounded-xl min-w-[200px]">

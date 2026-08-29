@@ -211,7 +211,7 @@ export default function App() {
 
 
   return (
-    <div className="w-full h-[100dvh] bg-white dark:bg-[#09090B] text-slate-800 dark:text-slate-200 flex flex-col font-sans overflow-hidden relative transition-colors duration-300">
+    <div className="w-full h-screen h-[100dvh] bg-white dark:bg-[#09090B] text-slate-800 dark:text-slate-200 flex flex-col font-sans overflow-hidden relative transition-colors duration-300">
       <AnimatePresence>
         {showIntro && (
           <motion.div 
@@ -393,7 +393,14 @@ export default function App() {
 
                   <div className="relative shadow-sm dark:shadow-lg dark:shadow-black/20">
                     <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500" size={18} />
-                    <Input 
+                    <Input
+                      type="search"
+                      inputMode="search"
+                      enterKeyHint="search"
+                      autoComplete="off"
+                      autoCorrect="off"
+                      autoCapitalize="none"
+                      spellCheck={false}
                       className="pl-12 pr-12 h-14 bg-white dark:bg-[#1A1A24] border-black/10 dark:border-white/10 text-black dark:text-white rounded-xl text-base shadow-sm focus-visible:ring-blue-500/50 transition-colors duration-300"
                       placeholder={!fromStation ? "Search your origin station..." : "Search your destination..."}
                       value={searchQuery}

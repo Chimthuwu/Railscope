@@ -285,7 +285,7 @@ export function LiveFeed({ station, toStation }: { station: any, toStation?: any
                       </div>
                       <div className="flex items-center gap-1.5 mt-1">
                         {meta.isBus ? (
-                          <span className="flex items-center gap-1 px-1.5 py-0.5 bg-cyan-500/15 border border-cyan-500/30 text-cyan-600 dark:text-cyan-400 rounded text-[9px] font-extrabold uppercase tracking-widest leading-none">
+                          <span className="flex items-center gap-1 px-1.5 py-0.5 bg-violet-500/15 border border-violet-500/30 text-violet-600 dark:text-violet-400 rounded text-[9px] font-extrabold uppercase tracking-widest leading-none">
                             <Bus size={10} /> BUS
                           </span>
                         ) : (

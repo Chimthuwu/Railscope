@@ -213,10 +213,10 @@ export const LINE_CONFIGS: Record<string, LineMeta> = {
   "BUS": {
     code: "BUS",
     name: "Bus Service / NightRide",
-    color: "#00b5ef",
-    bgStyle: "bg-cyan-500/20 border-cyan-500/40 text-cyan-700 dark:text-cyan-300 font-bold",
-    textStyle: "text-cyan-600 dark:text-cyan-400",
-    borderStyle: "border-cyan-500",
+    color: "#b794f6",
+    bgStyle: "bg-violet-500/20 border-violet-500/40 text-violet-700 dark:text-violet-300 font-bold",
+    textStyle: "text-violet-600 dark:text-violet-400",
+    borderStyle: "border-violet-500",
     isBus: true
   }
 };
