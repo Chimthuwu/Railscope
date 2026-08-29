@@ -59,6 +59,7 @@ const formatRoute = (routeId?: string, type?: string) => {
   }
 
   if (!routeId) return { name: "Unknown Route", color: "#333" };
+  routeId = String(routeId);
   const prefixMap: Record<string, {name: string, color: string}> = {
     "T1": { name: "T1 North Shore & Western", color: "#f99d1c" },
     "T2": { name: "T2 Inner West & Leppington", color: "#0098cd" },
@@ -392,6 +393,7 @@ export function TrainMap({ searchQuery = "", center, origin }: { searchQuery?: s
       if (vehicleTypeFilter === 'trains' && station.type === 'bus') return null;
       if (vehicleTypeFilter === 'buses' && station.type === 'train') return null;
       if (!station.lat || !station.lng) return null;
+      if (origin && station.id === origin.id) return null; // shown as the amber origin pin instead
       return (
         <Marker
           key={station.id}
@@ -412,7 +414,7 @@ export function TrainMap({ searchQuery = "", center, origin }: { searchQuery?: s
         </Marker>
       );
     });
-  }, [showStations, vehicleTypeFilter, zoomLevel, openStationId]);
+  }, [showStations, vehicleTypeFilter, zoomLevel, openStationId, origin]);
 
   const filteredTrains = useMemo(() => trains.filter(t => {
     if (vehicleTypeFilter === 'trains' && t._type === 'bus') return false;
@@ -511,7 +513,7 @@ export function TrainMap({ searchQuery = "", center, origin }: { searchQuery?: s
         {origin?.lat && origin?.lng && (
           <Marker
             position={[origin.lat, origin.lng]}
-            icon={getOriginIcon(origin.name)}
+            icon={getOriginIcon(origin.name || 'Origin')}
             zIndexOffset={1000}
           />
         )}

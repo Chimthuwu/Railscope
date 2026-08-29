@@ -11,6 +11,25 @@ import { stations } from "./data/stations";
 import { STATION_PRIMARY_LINE, LINE_CONFIGS } from "./lib/lineColors";
 import { motion, AnimatePresence } from "motion/react";
 
+// localStorage can throw (Safari private mode, disabled storage) and can hold
+// corrupt JSON — never let either crash the app on load.
+const lsGet = <T,>(key: string, fallback: T): T => {
+  try {
+    const raw = localStorage.getItem(key);
+    return raw ? (JSON.parse(raw) as T) : fallback;
+  } catch {
+    return fallback;
+  }
+};
+const lsSet = (key: string, value: unknown) => {
+  try {
+    if (value === null || value === undefined) localStorage.removeItem(key);
+    else localStorage.setItem(key, JSON.stringify(value));
+  } catch {
+    /* storage unavailable — non-fatal */
+  }
+};
+
 function ThemeToggle() {
   const { theme, setTheme } = useTheme();
 
@@ -39,18 +58,9 @@ export default function App() {
   const [activeTab, setActiveTab] = useState<'home' | 'favourites' | 'map' | 'feed'>('home');
   const [fromStation, setFromStation] = useState<any>(null);
   const [toStation, setToStation] = useState<any>(null);
-  const [homeStation, setHomeStation] = useState<any>(() => {
-    const saved = localStorage.getItem('homeStation');
-    return saved ? JSON.parse(saved) : null;
-  });
-  const [favourites, setFavourites] = useState<any[]>(() => {
-    const saved = localStorage.getItem('favourites');
-    return saved ? JSON.parse(saved) : [];
-  });
-  const [savedJourneys, setSavedJourneys] = useState<any[]>(() => {
-    const saved = localStorage.getItem('savedJourneys');
-    return saved ? JSON.parse(saved) : [];
-  });
+  const [homeStation, setHomeStation] = useState<any>(() => lsGet<any>('homeStation', null));
+  const [favourites, setFavourites] = useState<any[]>(() => lsGet<any[]>('favourites', []));
+  const [savedJourneys, setSavedJourneys] = useState<any[]>(() => lsGet<any[]>('savedJourneys', []));
   const [searchQuery, setSearchQuery] = useState("");
   const [isListening, setIsListening] = useState(false);
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
@@ -194,7 +204,7 @@ export default function App() {
       ? favourites.filter(f => f.id !== station.id)
       : [...favourites, station];
     setFavourites(newFavs);
-    localStorage.setItem('favourites', JSON.stringify(newFavs));
+    lsSet('favourites', newFavs);
   };
 
   const toggleSavedJourney = (origin: any, dest: any) => {
@@ -206,7 +216,7 @@ export default function App() {
       newJourneys = [...savedJourneys, { id, origin, dest }];
     }
     setSavedJourneys(newJourneys);
-    localStorage.setItem('savedJourneys', JSON.stringify(newJourneys));
+    lsSet('savedJourneys', newJourneys);
   };
 
 
@@ -218,10 +228,6 @@ export default function App() {
             initial={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.5 }}
-            onAnimationComplete={(definition) => {
-              // This runs only when exit animation completes? No, it runs on enter too if wait isn't used
-              // It's safer to just let AnimatePresence handle the unmount and do a setTimeout if we wanted manual.
-            }}
             className="fixed inset-0 z-[100] bg-white dark:bg-[#09090B] flex flex-col items-center justify-center pointer-events-none"
           >
             <div className="flex flex-col items-center gap-6">
@@ -486,8 +492,7 @@ export default function App() {
                                 onClick={() => {
                                   const newHome = homeStation?.id === s.id ? null : s;
                                   setHomeStation(newHome);
-                                  if (newHome) localStorage.setItem('homeStation', JSON.stringify(newHome));
-                                  else localStorage.removeItem('homeStation');
+                                  lsSet('homeStation', newHome);
                                 }}
                                 title="Set as Home"
                                 className={`p-3 mr-2 transition-colors rounded-full ${homeStation?.id === s.id ? 'text-yellow-500 dark:text-yellow-400 bg-yellow-50 dark:bg-yellow-500/10' : 'text-slate-300 dark:text-slate-600 hover:text-yellow-500 dark:hover:text-slate-400 group-hover:bg-black/5 dark:group-hover:bg-white/5'}`}

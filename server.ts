@@ -26,12 +26,23 @@ async function startServer() {
     next();
   });
 
+  // Short-lived cache: the GTFS-Realtime feed only refreshes every ~15-30s, so
+  // serving a cached copy for a few seconds collapses many polling clients into
+  // one upstream request and makes responses near-instant.
+  const vehicleCache = new Map<string, { at: number; body: any }>();
+  const VEHICLE_TTL_MS = 8000;
+
   // TfNSW API Route - Vehicle Positions
   app.get("/api/vehicles", async (req, res) => {
     try {
       const apiKey = process.env.TFNSW_API_KEY;
-      const type = req.query.type || "trains"; // "trains", "buses", "both"
-      
+      const type = String(req.query.type || "trains"); // "trains", "buses", "both"
+
+      const cached = vehicleCache.get(type);
+      if (cached && Date.now() - cached.at < VEHICLE_TTL_MS) {
+        return res.json(cached.body);
+      }
+
       if (!apiKey || apiKey === "YOUR_TFNSW_API_KEY") {
         // Return dummy data for preview when key is missing
         return res.json({
@@ -100,10 +111,9 @@ async function startServer() {
       const results = await Promise.all(promises);
       const allEntities = results.flat();
 
-      res.json({
-        status: "live",
-        entities: allEntities
-      });
+      const body = { status: "live", entities: allEntities };
+      vehicleCache.set(type, { at: Date.now(), body });
+      res.json(body);
     } catch (error) {
       console.log("[Info] Live feed unavailable, falling back to mock data. Reason:", error instanceof Error ? error.message : "Unknown");
       res.json({
@@ -131,6 +141,7 @@ async function startServer() {
       
       const response = await axios.get(url, {
         headers: { Authorization: `apikey ${apiKey}` },
+        timeout: 8000,
       });
 
       // Filter and map locations to return valid station stops
@@ -171,6 +182,7 @@ async function startServer() {
       
       const response = await axios.get(url, {
         headers: { Authorization: `apikey ${apiKey}` },
+        timeout: 8000,
       });
 
       let events = response.data?.stopEvents || [];
@@ -189,6 +201,7 @@ async function startServer() {
         try {
           const fallbackRes = await axios.get(fallbackUrl, {
             headers: { Authorization: `apikey ${apiKey}` },
+            timeout: 8000,
           });
           events = fallbackRes.data?.stopEvents || [];
           isOvernightFallback = true;
@@ -237,6 +250,7 @@ async function startServer() {
       
       const response = await axios.get(url, {
         headers: { Authorization: `apikey ${apiKey}` },
+        timeout: 8000,
       });
 
       let journeys = response.data?.journeys || [];
@@ -254,6 +268,7 @@ async function startServer() {
         try {
           const fallbackRes = await axios.get(fallbackUrl, {
             headers: { Authorization: `apikey ${apiKey}` },
+            timeout: 8000,
           });
           journeys = fallbackRes.data?.journeys || [];
           isOvernightFallback = true;
@@ -291,6 +306,7 @@ async function startServer() {
       
       const response = await axios.get(url, {
         headers: { Authorization: `apikey ${apiKey}` },
+        timeout: 8000,
       });
 
       const journeys = response.data?.journeys || [];
@@ -352,4 +368,7 @@ async function startServer() {
   });
 }
 
-startServer();
+startServer().catch((err) => {
+  console.error("Failed to start server:", err);
+  process.exit(1);
+});

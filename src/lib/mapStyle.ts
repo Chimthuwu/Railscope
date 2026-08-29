@@ -37,7 +37,6 @@ export const buildMapStyle = (hideNames: string[] = []) => {
   return ({
     version: 8,
     glyphs: `${CARTO}/fonts/{fontstack}/{range}.pbf`,
-    sprite: `${CARTO}/gl/dark-matter-gl-style/sprite`,
     sources: {
       carto: {
         type: "vector",

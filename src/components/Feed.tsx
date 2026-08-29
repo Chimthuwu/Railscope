@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { auth, db } from "../lib/firebase";
 import { GoogleAuthProvider, signInWithPopup, signInWithRedirect, signInAnonymously, onAuthStateChanged, signOut, User } from "firebase/auth";
-import { collection, query, orderBy, onSnapshot, addDoc, serverTimestamp, doc, runTransaction, getDoc, setDoc, deleteDoc, writeBatch } from "firebase/firestore";
+import { collection, query, orderBy, limit, onSnapshot, addDoc, serverTimestamp, doc, runTransaction, getDoc, setDoc, deleteDoc, writeBatch } from "firebase/firestore";
 import { Image as ImageIcon, Send, Loader2, LogIn, LogOut, Heart, Trash2, Mic } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { Input } from "@/components/ui/input";
@@ -31,7 +31,7 @@ export function Feed() {
   }, []);
 
   useEffect(() => {
-    const q = query(collection(db, "posts"), orderBy("createdAt", "desc"));
+    const q = query(collection(db, "posts"), orderBy("createdAt", "desc"), limit(100));
     const unsubscribe = onSnapshot(q, (snapshot) => {
       const p = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
       setPosts(p);
