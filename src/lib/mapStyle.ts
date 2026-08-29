@@ -26,11 +26,11 @@ const road = (
 // so a suburb name doesn't sit on top of its own station marker's label.
 export const buildMapStyle = (hideNames: string[] = []) => {
   const hidden = hideNames.map((n) => n.toLowerCase());
-  // Below z13 the station markers have no text, so suburb labels are fine.
-  // At z13+ the station labels appear, so drop any suburb label that duplicates one.
+  // Below z14 the station markers have no text, so suburb labels are fine.
+  // At z14+ the station labels appear, so drop any suburb label that duplicates one.
   const notAStation: any = [
     "any",
-    ["<", ["zoom"], 13],
+    ["<", ["zoom"], 14],
     ["!", ["in", ["downcase", ["to-string", ["coalesce", ["get", "name"], ""]]], ["literal", hidden]]],
   ];
 
@@ -67,35 +67,47 @@ export const buildMapStyle = (hideNames: string[] = []) => {
         paint: { "fill-color": "#0a1120", "fill-opacity": 0.5 },
       },
       {
-        id: "park",
-        type: "fill",
-        source: "carto",
-        "source-layer": "park",
-        paint: { "fill-color": "#0f2a24", "fill-opacity": 0.55 },
-      },
-      {
-        id: "park-outline",
-        type: "line",
-        source: "carto",
-        "source-layer": "park",
-        paint: { "line-color": "#1c4a3d", "line-width": 0.6, "line-opacity": 0.5 },
-      },
-      {
         id: "landuse-green",
         type: "fill",
         source: "carto",
         "source-layer": "landuse",
         filter: ["in", "class", "grass", "wood", "forest", "meadow", "nature_reserve"],
-        paint: { "fill-color": "#102420", "fill-opacity": 0.5 },
+        paint: { "fill-color": "#0f231e", "fill-opacity": 0.55 },
+      },
+      {
+        id: "park",
+        type: "fill",
+        source: "carto",
+        "source-layer": "park",
+        paint: { "fill-color": "#103029", "fill-opacity": 0.6 },
+      },
+      {
+        id: "park-glow",
+        type: "line",
+        source: "carto",
+        "source-layer": "park",
+        paint: { "line-color": "#2a6a56", "line-width": 1.2, "line-opacity": 0.4, "line-blur": 1.5 },
       },
 
-      // ── water ─────────────────────────────────────────────
+      // ── water: deep with a luminous coastline ─────────────
       {
         id: "water",
         type: "fill",
         source: "carto",
         "source-layer": "water",
-        paint: { "fill-color": "#081a2e" },
+        paint: { "fill-color": ["interpolate", ["linear"], ["zoom"], 8, "#07182b", 13, "#08202f"] },
+      },
+      {
+        id: "water-glow",
+        type: "line",
+        source: "carto",
+        "source-layer": "water",
+        paint: {
+          "line-color": "#2f7fa8",
+          "line-width": ["interpolate", ["linear"], ["zoom"], 8, 1.5, 14, 5],
+          "line-opacity": 0.3,
+          "line-blur": 4,
+        },
       },
       {
         id: "water-edge",
@@ -103,10 +115,10 @@ export const buildMapStyle = (hideNames: string[] = []) => {
         source: "carto",
         "source-layer": "water",
         paint: {
-          "line-color": "#1e5f86",
-          "line-width": ["interpolate", ["linear"], ["zoom"], 8, 0.5, 14, 1.6],
-          "line-opacity": 0.55,
-          "line-blur": 0.6,
+          "line-color": "#3d92bd",
+          "line-width": ["interpolate", ["linear"], ["zoom"], 8, 0.5, 14, 1.4],
+          "line-opacity": 0.7,
+          "line-blur": 0.4,
         },
       },
       {
@@ -114,10 +126,10 @@ export const buildMapStyle = (hideNames: string[] = []) => {
         type: "line",
         source: "carto",
         "source-layer": "waterway",
-        paint: { "line-color": "#123049", "line-width": ["interpolate", ["linear"], ["zoom"], 10, 0.5, 16, 2] },
+        paint: { "line-color": "#1a4665", "line-width": ["interpolate", ["linear"], ["zoom"], 10, 0.5, 16, 2] },
       },
 
-      // ── buildings ─────────────────────────────────────────
+      // ── buildings — the "city blocks" layer ───────────────
       {
         id: "building",
         type: "fill",
@@ -125,20 +137,20 @@ export const buildMapStyle = (hideNames: string[] = []) => {
         "source-layer": "building",
         minzoom: 13,
         paint: {
-          "fill-color": ["interpolate", ["linear"], ["zoom"], 13, "#111a2e", 16, "#16203a"],
-          "fill-opacity": ["interpolate", ["linear"], ["zoom"], 13, 0, 13.6, 0.7],
-          "fill-outline-color": "#20304f",
+          "fill-color": ["interpolate", ["linear"], ["zoom"], 13, "#121b31", 16, "#18233e"],
+          "fill-opacity": ["interpolate", ["linear"], ["zoom"], 13, 0, 13.8, 0.85],
         },
+      },
+      {
+        id: "building-outline",
+        type: "line",
+        source: "carto",
+        "source-layer": "building",
+        minzoom: 14.5,
+        paint: { "line-color": "#27375a", "line-width": 0.5, "line-opacity": 0.6 },
       },
 
       // ── roads: glow pass, then body, then highlight ───────
-      road(
-        "rail",
-        ["==", "class", "rail"],
-        "#3a3f7d",
-        ["interpolate", ["linear"], ["zoom"], 8, 0.6, 14, 2.4],
-        { "line-dasharray": [2, 2.5], "line-opacity": 0.7 },
-      ),
       road(
         "minor",
         ["in", "class", "minor", "service", "track"],
@@ -191,6 +203,37 @@ export const buildMapStyle = (hideNames: string[] = []) => {
         { "line-blur": 1, "line-opacity": 0.7 },
       ),
 
+      // ── rail — drawn over roads; it's a train app, the network should read ──
+      road(
+        "rail-glow",
+        ["==", "class", "rail"],
+        "#4b52b0",
+        ["interpolate", ["linear"], ["zoom"], 9, 1.5, 14, 6, 18, 12],
+        { "line-blur": 5, "line-opacity": 0.3 },
+      ),
+      road(
+        "rail-line",
+        ["==", "class", "rail"],
+        "#7d84d8",
+        ["interpolate", ["linear"], ["zoom"], 9, 0.5, 13, 1.2, 18, 2.6],
+        { "line-opacity": 0.85 },
+      ),
+      road(
+        "rail-ties",
+        ["==", "class", "rail"],
+        "#aeb4ee",
+        ["interpolate", ["linear"], ["zoom"], 13, 1.2, 18, 3],
+        { "line-dasharray": [0.4, 3], "line-opacity": 0.5 },
+      ),
+      // Sydney ferries — a soft dashed teal across the harbour
+      road(
+        "ferry",
+        ["==", "class", "ferry"],
+        "#2f8f9a",
+        ["interpolate", ["linear"], ["zoom"], 10, 0.6, 15, 1.6],
+        { "line-dasharray": [3, 3], "line-opacity": 0.55 },
+      ),
+
       // ── boundaries ────────────────────────────────────────
       {
         id: "boundary",
@@ -214,8 +257,10 @@ export const buildMapStyle = (hideNames: string[] = []) => {
           "text-field": ["get", "name"],
           "text-font": ["Open Sans Regular"],
           "text-size": ["interpolate", ["linear"], ["zoom"], 13, 9, 18, 12],
+          "text-optional": true,
+          "text-padding": 3,
         },
-        paint: { "text-color": "#8ea6c8", "text-halo-color": "#080d18", "text-halo-width": 1.2 },
+        paint: { "text-color": "#8497b7", "text-halo-color": "#080d18", "text-halo-width": 1.2 },
       },
       {
         id: "label-road-major",
@@ -230,6 +275,8 @@ export const buildMapStyle = (hideNames: string[] = []) => {
           "text-font": ["Open Sans Semibold"],
           "text-size": ["interpolate", ["linear"], ["zoom"], 10, 10, 18, 14],
           "text-letter-spacing": 0.02,
+          "text-optional": true,
+          "text-padding": 4,
         },
         paint: { "text-color": "#eaf2ff", "text-halo-color": "#060b14", "text-halo-width": 1.6 },
       },
@@ -241,9 +288,10 @@ export const buildMapStyle = (hideNames: string[] = []) => {
         layout: {
           "text-field": ["get", "name"],
           "text-font": ["Open Sans Italic"],
-          "text-size": ["interpolate", ["linear"], ["zoom"], 8, 10, 14, 15],
+          "text-size": ["interpolate", ["linear"], ["zoom"], 8, 11, 14, 16],
+          "text-letter-spacing": 0.05,
         },
-        paint: { "text-color": "#3f7098", "text-halo-color": "#060f1a", "text-halo-width": 1 },
+        paint: { "text-color": "#5390b8", "text-halo-color": "#060f1a", "text-halo-width": 1, "text-halo-blur": 1 },
       },
       {
         id: "label-place-small",
@@ -261,8 +309,10 @@ export const buildMapStyle = (hideNames: string[] = []) => {
           "text-transform": "uppercase",
           "text-letter-spacing": 0.14,
           "text-size": ["interpolate", ["linear"], ["zoom"], 11, 10, 16, 13],
+          "text-padding": 6,
+          "symbol-sort-key": ["to-number", ["get", "rank"], 10],
         },
-        paint: { "text-color": "#aebdd9", "text-halo-color": "#070c16", "text-halo-width": 1.4 },
+        paint: { "text-color": "#a9b8d4", "text-halo-color": "#070c16", "text-halo-width": 1.4 },
       },
       {
         id: "label-place-large",

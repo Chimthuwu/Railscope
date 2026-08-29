@@ -151,9 +151,10 @@ const createCustomIcon = (routeId: string, type: string | undefined, size: numbe
 
 const createStationIcon = (type: string, name: string, showText: boolean) => {
   const isBus = type === "bus";
-  const bgColor = isBus ? "#b794f6" : "#f99d1c";
+  // cool-toned so amber stays reserved for the origin pin
+  const ringColor = isBus ? "#b794f6" : "#8fa6d4";
 
-  // Using a very small dot for the station with the name next to it
+  // Small ringed node with the name beside it
   const iconMarkup = renderToStaticMarkup(
     <div style={{
       display: "flex",
@@ -166,20 +167,20 @@ const createStationIcon = (type: string, name: string, showText: boolean) => {
       left: 0
     }}>
       <div style={{
-        backgroundColor: "white",
-        width: "12px", height: "12px",
+        backgroundColor: "#e8eefc",
+        width: "9px", height: "9px",
         borderRadius: "50%",
-        border: `3px solid ${bgColor}`,
-        boxShadow: "0 2px 5px rgba(0,0,0,0.5)",
+        border: `2px solid ${ringColor}`,
+        boxShadow: `0 0 4px rgba(0,0,0,0.55), 0 0 6px ${ringColor}55`,
         flexShrink: 0
       }}></div>
       {showText && (
         <div style={{
-          fontSize: "12px",
-          fontWeight: "800",
-          color: "white",
-          textShadow: "0 1px 4px rgba(0,0,0,0.9), 0 -1px 4px rgba(0,0,0,0.9), 1px 0 4px rgba(0,0,0,0.9), -1px 0 4px rgba(0,0,0,0.9)",
-          letterSpacing: "0.5px",
+          fontSize: "11px",
+          fontWeight: "700",
+          color: "#eef2fc",
+          textShadow: "0 1px 3px rgba(0,0,0,0.95), 0 0 6px rgba(0,0,0,0.85)",
+          letterSpacing: "0.3px",
           fontFamily: "system-ui, -apple-system, sans-serif",
           whiteSpace: "nowrap"
         }}>
@@ -192,9 +193,9 @@ const createStationIcon = (type: string, name: string, showText: boolean) => {
   return L.divIcon({
     html: iconMarkup,
     className: 'custom-station-marker',
-    iconSize: [12, 12],
-    iconAnchor: [6, 6],
-    popupAnchor: [0, -6]
+    iconSize: [13, 13],
+    iconAnchor: [6.5, 6.5],
+    popupAnchor: [0, -7]
   });
 };
 
@@ -395,7 +396,7 @@ export function TrainMap({ searchQuery = "", center, origin }: { searchQuery?: s
         <Marker
           key={station.id}
           position={[station.lat, station.lng]}
-          icon={getStationIcon(station.type || 'train', station.name, zoomLevel >= 13)}
+          icon={getStationIcon(station.type || 'train', station.name, zoomLevel >= 14)}
           eventHandlers={{
             popupopen: () => setOpenStationId(station.id),
             popupclose: () => setOpenStationId((prev) => (prev === station.id ? null : prev)),

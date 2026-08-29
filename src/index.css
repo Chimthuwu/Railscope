@@ -68,17 +68,25 @@ body {
 .premium-map .leaflet-container {
   background: #070b16 !important;
 }
-/* gentle cinematic atmosphere over the vector basemap — above tiles, below controls */
+/* cinematic atmosphere over the vector basemap — above tiles, below controls */
 .premium-map .map-atmosphere {
   position: absolute;
   inset: 0;
   z-index: 350;
   pointer-events: none;
   background:
-    radial-gradient(65% 38% at 50% 0%, rgba(96, 132, 235, 0.08), transparent 72%),
-    radial-gradient(60% 45% at 88% 92%, rgba(20, 150, 150, 0.06), transparent 70%),
-    radial-gradient(120% 90% at 42% 45%, rgba(74, 52, 150, 0.06) 0%, transparent 58%),
-    radial-gradient(150% 130% at 50% 52%, transparent 45%, rgba(3, 5, 14, 0.42) 100%);
+    radial-gradient(60% 34% at 50% 0%, rgba(96, 132, 235, 0.09), transparent 72%),
+    radial-gradient(55% 42% at 90% 94%, rgba(24, 150, 150, 0.07), transparent 70%),
+    radial-gradient(110% 85% at 40% 42%, rgba(78, 54, 156, 0.07) 0%, transparent 56%),
+    radial-gradient(135% 115% at 50% 50%, transparent 40%, rgba(2, 4, 12, 0.5) 100%);
+}
+/* soft top edge so content under the header reads cleanly */
+.premium-map .map-atmosphere::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 90px;
+  background: linear-gradient(to bottom, rgba(4, 6, 16, 0.35), transparent);
 }
 
 @import "tw-animate-css";
