@@ -7,6 +7,7 @@ import { Train, Bus, MapPin, Layers } from "lucide-react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { stations } from "../data/stations";
 import { useTheme } from "next-themes";
+import { StationInfoCard } from "./StationInfoCard";
 
 // CARTO basemaps require a key (https://carto.com/basemaps/apikey); see config.ts.
 const cartoTiles = (style: string) =>
@@ -178,6 +179,7 @@ export function TrainMap({ searchQuery = "", center }: { searchQuery?: string, c
   const [trains, setTrains] = useState<any[]>([]);
   const [vehicleTypeFilter, setVehicleTypeFilter] = useState<'both' | 'trains' | 'buses'>('both');
   const [showStations, setShowStations] = useState(true);
+  const [openStationId, setOpenStationId] = useState<string | null>(null);
   const [zoomLevel, setZoomLevel] = useState(11);
   const { resolvedTheme } = useTheme();
 
@@ -298,18 +300,21 @@ export function TrainMap({ searchQuery = "", center }: { searchQuery?: string, c
           if (!station.lat || !station.lng) return null;
 
           return (
-            <Marker 
-              key={station.id} 
+            <Marker
+              key={station.id}
               position={[station.lat, station.lng]}
               icon={getStationIcon(station.type || 'train', station.name, zoomLevel >= 13)}
+              eventHandlers={{
+                popupopen: () => setOpenStationId(station.id),
+                popupclose: () => setOpenStationId((prev) => (prev === station.id ? null : prev)),
+              }}
             >
-              <Popup className="rounded-xl">
-                <div className="font-semibold text-sm px-1 py-0.5">
-                  <div className="flex items-center gap-2">
-                    {station.type === 'bus' ? <Bus size={12} className="text-cyan-500" /> : <Train size={12} className="text-orange-500" />}
-                    {station.name}
-                  </div>
-                </div>
+              <Popup className="station-popup" maxWidth={276} minWidth={248}>
+                <StationInfoCard
+                  name={station.name}
+                  type={station.type || 'train'}
+                  active={openStationId === station.id}
+                />
               </Popup>
             </Marker>
           );
