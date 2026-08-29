@@ -99,6 +99,7 @@ artificial paywalls for saving your favourite stations or routine commutes.
 
 - **Node.js 18+**
 - A free **TfNSW API key** from the [TfNSW Open Data Hub](https://opendata.transport.nsw.gov.au/)
+- A free **CARTO API key** for map tiles from [carto.com/basemaps/apikey](https://carto.com/basemaps/apikey)
 
 ### Install &amp; run
 
@@ -110,8 +111,10 @@ cd Railscope
 # 2. Install dependencies
 npm install
 
-# 3. Add your API key
-echo 'TFNSW_API_KEY="your_key_here"' > .env
+# 3. Add your keys
+cp .env.example .env    # then edit .env:
+#   TFNSW_API_KEY="..."        (server-side, used by the API proxy)
+#   VITE_CARTO_API_KEY="..."   (inlined into the frontend build for map tiles)
 
 # 4. Start the dev server (Express + Vite on http://localhost:3000)
 npm run dev
@@ -145,8 +148,13 @@ Serverless, no cold starts, free.
 | Build output directory | `dist` |
 | Framework preset | None |
 
-Add `TFNSW_API_KEY` under **Settings → Environment Variables**. The API routes in
-[`functions/api/`](functions/api) are served automatically as Pages Functions.
+Add both keys under **Settings → Environment Variables** (they must be present for the
+build, since `VITE_CARTO_API_KEY` is inlined into the bundle):
+
+| Variable | Purpose |
+|---|---|
+| `TFNSW_API_KEY` | TfNSW API proxy (used by the Pages Functions in [`functions/api/`](functions/api)) |
+| `VITE_CARTO_API_KEY` | CARTO basemap map tiles |
 
 ### Render (self-hosted API / native app backend)
 
@@ -157,7 +165,7 @@ manually, use:
 |---|---|
 | Build command | `npm install && npm run build` |
 | Start command | `npm start` |
-| Environment | `TFNSW_API_KEY=<your key>` |
+| Environment | `TFNSW_API_KEY=<your key>`, `VITE_CARTO_API_KEY=<your key>` |
 
 > **Note:** don't set `NODE_ENV=production` on Render — it makes `npm install` skip the
 > build tools. The server detects Render automatically and serves the built frontend.

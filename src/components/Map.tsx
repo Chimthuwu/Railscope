@@ -8,6 +8,14 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { stations } from "../data/stations";
 import { useTheme } from "next-themes";
 
+// CARTO basemaps now require a free API key (https://carto.com/basemaps/apikey).
+// Provide it at build time via VITE_CARTO_API_KEY (.env locally; build env vars on
+// Cloudflare Pages / Render). Without it, tiles render with an "API KEY REQUIRED" watermark.
+const CARTO_KEY = import.meta.env.VITE_CARTO_API_KEY;
+const cartoTiles = (style: string) =>
+  `https://{s}.basemaps.cartocdn.com/${style}/{z}/{x}/{y}{r}.png` +
+  (CARTO_KEY ? `?key=${CARTO_KEY}` : "");
+
 // Route ID formatting
 const formatRoute = (routeId?: string, type?: string) => {
   if (type === "bus") {
@@ -279,7 +287,7 @@ export function TrainMap({ searchQuery = "", center }: { searchQuery?: string, c
         <MapUpdater center={center} />
         <TileLayer
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
-          url={resolvedTheme === 'dark' ? "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png" : "https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"}
+          url={resolvedTheme === 'dark' ? cartoTiles('dark_all') : cartoTiles('rastertiles/voyager')}
         />
 
         {/* Render Stations / Stops */}
