@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useMap } from "react-leaflet";
 import { Train, Bus, ExternalLink, Loader2 } from "lucide-react";
 
 // ─── Wikipedia lookup ────────────────────────────────────────────────────────
@@ -138,13 +139,28 @@ export function StationInfoCard({
 }) {
   const isBus = type === "bus";
   const heading = `${name} ${isBus ? "Bus Stop" : "Train Station"}`;
+  const map = useMap();
   const [data, setData] = useState<StationWiki | null | undefined>(() => cache.get(name));
   const [loading, setLoading] = useState(false);
+
+  // Leaflet positions the popup when it opens (while still "Loading…"). Once the
+  // async content lands the popup grows, so nudge Leaflet to re-measure and pan
+  // it back into view instead of leaving the title off the top of the screen.
+  const reflow = () => {
+    requestAnimationFrame(() => {
+      try {
+        (map as any)._popup?.update();
+      } catch {
+        /* ignore */
+      }
+    });
+  };
 
   useEffect(() => {
     if (isBus || !active) return;
     if (cache.has(name)) {
       setData(cache.get(name));
+      reflow();
       return;
     }
     let cancelled = false;
@@ -158,7 +174,10 @@ export function StationInfoCard({
         if (!cancelled) setData(null);
       })
       .finally(() => {
-        if (!cancelled) setLoading(false);
+        if (!cancelled) {
+          setLoading(false);
+          reflow();
+        }
       });
     return () => {
       cancelled = true;
@@ -167,15 +186,7 @@ export function StationInfoCard({
 
   return (
     <div className="w-[248px] text-slate-100 font-sans">
-      {data?.image && (
-        <img
-          src={data.image}
-          alt={heading}
-          className="w-full h-28 object-cover rounded-lg mb-2"
-          loading="lazy"
-        />
-      )}
-
+      {/* Pinned header — always visible, never scrolls out of view */}
       <div className="flex items-start gap-2">
         {isBus ? (
           <Bus size={15} className="text-cyan-400 mt-0.5 shrink-0" />
@@ -199,11 +210,19 @@ export function StationInfoCard({
       )}
 
       {data && (
-        <>
+        <div className="mt-2 max-h-[46vh] overflow-y-auto overscroll-contain -mr-1 pr-1">
+          {data.image && (
+            <img
+              src={data.image}
+              alt={heading}
+              className="w-full h-24 object-cover rounded-lg mb-2"
+              loading="lazy"
+              onLoad={reflow}
+            />
+          )}
+
           {data.extract && (
-            <p className="text-[11px] leading-snug text-slate-300 mt-2 max-h-24 overflow-y-auto">
-              {data.extract}
-            </p>
+            <p className="text-[11px] leading-snug text-slate-300">{data.extract}</p>
           )}
 
           {data.facts.length > 0 && (
@@ -225,7 +244,7 @@ export function StationInfoCard({
           >
             View on Wikipedia <ExternalLink size={11} />
           </a>
-        </>
+        </div>
       )}
 
       {data === null && !loading && (

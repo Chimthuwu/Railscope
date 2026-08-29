@@ -309,7 +309,12 @@ export function TrainMap({ searchQuery = "", center }: { searchQuery?: string, c
                 popupclose: () => setOpenStationId((prev) => (prev === station.id ? null : prev)),
               }}
             >
-              <Popup className="station-popup" maxWidth={276} minWidth={248}>
+              <Popup
+                className="station-popup"
+                maxWidth={276}
+                minWidth={248}
+                autoPanPadding={[18, 80]}
+              >
                 <StationInfoCard
                   name={station.name}
                   type={station.type || 'train'}
