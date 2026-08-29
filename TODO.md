@@ -49,27 +49,53 @@ so the Pages project needs `nodejs_compat` — add a root `wrangler.toml` with
 `compatibility_flags = ["nodejs_compat"]` and a recent `compatibility_date`, then
 switch `VEHICLES_API_BASE` back to same-origin.
 
-## 🧰 Code-health backlog (from the review)
+## 🧰 Code-health backlog (from the reviews)
 
+### Performance / scale
 - **Bundle is one ~2.4 MB chunk** (~690 KB gzip) — MapLibre GL added ~800 KB.
-  This is now the priority: lazy-load `Map.tsx` (Leaflet + MapLibre) and
-  `Feed.tsx` (Firebase) behind `React.lazy` so the first paint doesn't ship
-  them. Map + Feed are separate tabs — ideal split points.
-- **Test the map on a real iPhone.** MapLibre GL needs WebGL; if a device
-  blocklists it the vector basemap goes blank (light mode raster is the safe
-  fallback — consider auto-falling back if `!maplibregl.supported()`).
-- **Map tab remounts on every tab switch** — loses pan/zoom and restarts the
-  poll + rAF each visit. Keep `<TrainMap>` mounted and toggle with `hidden`.
+  Top priority: lazy-load `Map.tsx` (Leaflet + MapLibre) and `Feed.tsx`
+  (Firebase) behind `React.lazy`. Map + Feed are separate tabs — ideal splits.
+- **Vehicle markers are not viewport-culled.** Daytime can be 1000-2000 bus
+  markers, each a glowing DOM DivIcon — heavy on phones. Render only markers
+  within the (padded) map bounds; track bounds on `moveend`.
+- **Map tab remounts on every tab switch** — loses pan/zoom, restarts the poll
+  + rAF, re-flies to origin. Keep `<TrainMap>` mounted and toggle with `hidden`.
+- **`stationMarkers` memo rebuilds all ~600 markers when any popup opens**
+  (`openStationId` is a dep) and re-`setLatLng`s them (new `position` array each
+  time). Precompute stable `[lat,lng]` tuples; lift `active` out of the memo.
+- `renderToStaticMarkup` runs per unique icon on first load — ~100 calls for
+  distinct bus routes = a small hitch. Could build the SVG strings directly.
+
+### Correctness / robustness
+- **`vehicleId` fallback `veh-${index}`** uses different index bases in
+  `applyPositions` (entities) vs render (filteredTrains). Vehicles with no
+  `id`/`tripId` (rare) won't animate. Use a content hash or drop them.
+- **Map tab first load can hang ~50s** on a Render cold start (free tier) with
+  no fetch timeout / "waking up" indicator.
+- **`LiveFeed` "Alerts" tab is hardcoded** "No Active Alerts" — never wired to
+  the TfNSW `/v1/gtfs/alerts` feed.
+- **Theme FOUC**: `resolvedTheme` is undefined on first render → map flashes the
+  day raster before the dark vector loads. Guard with a mounted check.
+- **`functions/api/vehicles.ts` still missing** (see section above) — web map
+  depends on the cold-starting Render backend.
+
+### Hygiene
 - **Unused / misplaced deps**: `@google/genai`, `react-window`,
-  `react-virtualized-auto-sizer` are unused; `shadcn` (a CLI) is in
-  `dependencies`. Remove / move to devDependencies.
+  `react-virtualized-auto-sizer` unused; `shadcn` (a CLI) is in `dependencies`.
 - **Scratch files committed**: `test-gtfs.ts`, `trip.json`, `find_stops.cjs`.
-  Move to a `scripts/` dir or gitignore.
-- **`LiveFeed` "Alerts" tab is hardcoded** "No Active Alerts" — not wired to the
-  TfNSW alerts API.
-- **`server.ts`**: `startServer()` has no `.catch()` — a startup failure becomes
-  an unhandled rejection.
-- **Header download links** point at the hardcoded `fushigi` release tag
-  (`App.tsx`), while the README points at `/releases`. Pick one.
+- **Header download links** hardcode the `fushigi` release tag (`App.tsx`);
+  README points at `/releases`. Pick one.
+- **Logos load from `i.ibb.co`** (splash + header) — third-party dependency for
+  core branding. Localise into `public/`.
 - Note: `firebase-applet-config.json` in git is **fine** — Firebase web config
   is public by design; security is the Firestore rules + authorized domains.
+
+### Fixed in this review pass
+- localStorage crash guard (corrupt JSON / disabled storage no longer white-screens)
+- Feed listener `limit(100)`; `handleClearFeed` batch chunking
+- 8s cache on `/api/vehicles` + 8s timeouts on every TfNSW call (server + CF)
+- `startServer().catch()`; `String(routeId)` guard
+- Origin station no longer double-rendered on the map
+- Search race guard; virtualizer `estimateSize`
+- iOS: search input attributes, `viewport-fit=cover`, `h-screen` fallback
+- WebGL fallback to raster; local favicon
