@@ -221,14 +221,14 @@ export default function App() {
 
 
   return (
-    <div className="w-full h-screen h-[100dvh] bg-white dark:bg-[#09090B] text-slate-800 dark:text-slate-200 flex flex-col font-sans overflow-hidden relative transition-colors duration-300">
+    <div className="w-full h-screen h-[100dvh] bg-[#eceee9] dark:bg-[#09090B] text-slate-800 dark:text-slate-200 flex flex-col font-sans overflow-hidden relative transition-colors duration-300">
       <AnimatePresence>
         {showIntro && (
           <motion.div 
             initial={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.5 }}
-            className="fixed inset-0 z-[100] bg-white dark:bg-[#09090B] flex flex-col items-center justify-center pointer-events-none"
+            className="fixed inset-0 z-[100] bg-[#eceee9] dark:bg-[#09090B] flex flex-col items-center justify-center pointer-events-none"
           >
             <div className="flex flex-col items-center gap-6">
                <motion.img 
@@ -262,7 +262,7 @@ export default function App() {
         )}
       </AnimatePresence>
 
-      <header className="h-14 shrink-0 border-b border-black/10 dark:border-white/5 flex items-center justify-between px-4 md:px-6 bg-white/80 dark:bg-[#09090B]/80 backdrop-blur-md z-40 transition-colors duration-300">
+      <header className="h-14 shrink-0 border-b border-black/10 dark:border-white/5 flex items-center justify-between px-4 md:px-6 bg-[#eceee9]/85 dark:bg-[#09090B]/80 backdrop-blur-md z-40 transition-colors duration-300">
         <div className="flex items-center gap-3">
           {/* stacked mark + wordmark; wordmark only goes white in dark mode for legibility */}
           <div className="flex flex-col items-start gap-0.5">
@@ -611,7 +611,7 @@ export default function App() {
       </main>
 
       {/* Bottom Navigation */}
-      <nav className="shrink-0 h-16 border-t border-black/10 dark:border-white/5 bg-white/95 dark:bg-[#0C0C0E]/95 backdrop-blur-xl w-full flex items-center justify-around px-4 sm:px-10 z-50 transition-colors duration-300 pb-[env(safe-area-inset-bottom)] box-content">
+      <nav className="shrink-0 h-16 border-t border-black/10 dark:border-white/5 bg-[#eceee9]/90 dark:bg-[#0C0C0E]/95 backdrop-blur-xl w-full flex items-center justify-around px-4 sm:px-10 z-50 transition-colors duration-300 pb-[env(safe-area-inset-bottom)] box-content">
         <button onClick={() => setActiveTab('home')} className={`flex flex-col items-center gap-1.5 w-16 md:w-20 transition-colors ${activeTab === 'home' ? 'text-blue-600 dark:text-blue-400' : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'}`}>
           <Search size={22} className={activeTab === 'home' ? 'fill-blue-500/20' : ''} />
           <span className="text-[10px] font-bold tracking-wider uppercase">Search</span>

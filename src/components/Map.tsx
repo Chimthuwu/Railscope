@@ -30,17 +30,17 @@ const WEBGL_OK = (() => {
 // under all the Leaflet markers.
 const STATION_NAMES = stations.map((s) => s.name);
 
-function VectorBasemap() {
+function VectorBasemap({ mode }: { mode: "dark" | "light" }) {
   const map = useMap();
   useEffect(() => {
-    const style = buildMapStyle(STATION_NAMES);
+    const style = buildMapStyle(STATION_NAMES, mode);
     // @ts-expect-error - plugin augments the L namespace at runtime
     const gl = L.maplibreGL({ style, attribution: style.sources.carto.attribution });
     gl.addTo(map);
     return () => {
       map.removeLayer(gl);
     };
-  }, [map]);
+  }, [map, mode]);
   return null;
 }
 
@@ -427,9 +427,9 @@ export function TrainMap({ searchQuery = "", center, origin }: { searchQuery?: s
     return routeId.includes(q) || tripId.includes(q);
   }), [trains, vehicleTypeFilter, searchQuery]);
 
-  const isDark = resolvedTheme === 'dark';
-  // Vector basemap needs WebGL; fall back to raster dark tiles if unavailable.
-  const premium = isDark && WEBGL_OK;
+  const isDark = resolvedTheme !== 'light'; // default to dark before theme resolves
+  // Vector basemap needs WebGL; fall back to raster tiles if unavailable.
+  const vector = WEBGL_OK;
 
   return (
     <div className={`w-full h-full relative ${isDark ? 'premium-map' : 'day-map'}`}>
@@ -488,8 +488,8 @@ export function TrainMap({ searchQuery = "", center, origin }: { searchQuery?: s
         zoomControl={false}
       >
         <MapController center={center} onZoom={setZoomLevel} />
-        {premium ? (
-          <VectorBasemap />
+        {vector ? (
+          <VectorBasemap mode={isDark ? 'dark' : 'light'} />
         ) : isDark ? (
           <TileLayer
             attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'

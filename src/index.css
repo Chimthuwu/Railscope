@@ -89,21 +89,21 @@ body {
   background: linear-gradient(to bottom, rgba(4, 6, 16, 0.35), transparent);
 }
 
-/* ── Day map: take the glare off CARTO Voyager ──────────────────────────────── */
+/* ── Day map ───────────────────────────────────────────────────────────────── */
 .day-map .leaflet-container {
-  background: #e9edf2 !important;
+  background: #e4e7e1 !important;
 }
+/* raster fallback only (no WebGL): knock the glare off Voyager */
 .day-map .day-tiles {
-  filter: brightness(0.95) saturate(0.82) contrast(0.94) sepia(0.06);
+  filter: brightness(0.9) saturate(0.72) contrast(0.92) sepia(0.08);
 }
+/* gentle framing vignette over the (already muted) vector day map */
 .day-map .map-atmosphere {
   position: absolute;
   inset: 0;
   z-index: 350;
   pointer-events: none;
-  background:
-    radial-gradient(120% 90% at 50% 45%, rgba(38, 54, 92, 0.05) 0%, transparent 55%),
-    radial-gradient(140% 120% at 50% 55%, transparent 55%, rgba(30, 42, 74, 0.12) 100%);
+  background: radial-gradient(150% 130% at 50% 50%, transparent 60%, rgba(40, 50, 44, 0.14) 100%);
 }
 
 @import "tw-animate-css";
