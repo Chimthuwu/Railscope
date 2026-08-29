@@ -48,3 +48,24 @@ from `server.ts`. It decodes GTFS-Realtime protobuf via `gtfs-realtime-bindings`
 so the Pages project needs `nodejs_compat` — add a root `wrangler.toml` with
 `compatibility_flags = ["nodejs_compat"]` and a recent `compatibility_date`, then
 switch `VEHICLES_API_BASE` back to same-origin.
+
+## 🧰 Code-health backlog (from the review)
+
+- **Bundle is one 1.6 MB chunk** (~460 KB gzip). Lazy-load the heavy tabs:
+  `Map.tsx` (Leaflet) and `Feed.tsx` (Firebase) behind `React.lazy` so the
+  first paint doesn't ship them.
+- **Map tab remounts on every tab switch** — loses pan/zoom and restarts the
+  poll + rAF each visit. Keep `<TrainMap>` mounted and toggle with `hidden`.
+- **Unused / misplaced deps**: `@google/genai`, `react-window`,
+  `react-virtualized-auto-sizer` are unused; `shadcn` (a CLI) is in
+  `dependencies`. Remove / move to devDependencies.
+- **Scratch files committed**: `test-gtfs.ts`, `trip.json`, `find_stops.cjs`.
+  Move to a `scripts/` dir or gitignore.
+- **`LiveFeed` "Alerts" tab is hardcoded** "No Active Alerts" — not wired to the
+  TfNSW alerts API.
+- **`server.ts`**: `startServer()` has no `.catch()` — a startup failure becomes
+  an unhandled rejection.
+- **Header download links** point at the hardcoded `fushigi` release tag
+  (`App.tsx`), while the README points at `/releases`. Pick one.
+- Note: `firebase-applet-config.json` in git is **fine** — Firebase web config
+  is public by design; security is the Firestore rules + authorized domains.
