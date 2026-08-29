@@ -22,8 +22,16 @@ const road = (
   paint: { "line-color": color, "line-width": width, ...extra },
 });
 
-export const buildMapStyle = () =>
-  ({
+// `hideNames` = place labels to suppress (lower-cased) — we pass the station list
+// so a suburb name doesn't sit on top of its own station marker's label.
+export const buildMapStyle = (hideNames: string[] = []) => {
+  const hidden = hideNames.map((n) => n.toLowerCase());
+  const notAStation: any = [
+    "!",
+    ["in", ["downcase", ["to-string", ["coalesce", ["get", "name"], ""]]], ["literal", hidden]],
+  ];
+
+  return ({
     version: 8,
     glyphs: `${CARTO}/fonts/{fontstack}/{range}.pbf`,
     sprite: `${CARTO}/gl/dark-matter-gl-style/sprite`,
@@ -239,7 +247,11 @@ export const buildMapStyle = () =>
         type: "symbol",
         source: "carto",
         "source-layer": "place",
-        filter: ["in", "class", "suburb", "suburbs", "neighbourhood", "hamlet", "village"],
+        filter: [
+          "all",
+          ["match", ["get", "class"], ["suburb", "suburbs", "neighbourhood", "hamlet", "village"], true, false],
+          notAStation,
+        ],
         layout: {
           "text-field": ["get", "name"],
           "text-font": ["Open Sans Semibold"],
@@ -254,7 +266,11 @@ export const buildMapStyle = () =>
         type: "symbol",
         source: "carto",
         "source-layer": "place",
-        filter: ["in", "class", "city", "town"],
+        filter: [
+          "all",
+          ["match", ["get", "class"], ["city", "town"], true, false],
+          notAStation,
+        ],
         layout: {
           "text-field": ["get", "name"],
           "text-font": ["Open Sans Bold"],
@@ -266,3 +282,4 @@ export const buildMapStyle = () =>
       },
     ],
   }) as any;
+};

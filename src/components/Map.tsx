@@ -28,10 +28,12 @@ const WEBGL_OK = (() => {
 // Vector basemap (dark mode): CARTO free vector tiles rendered with our custom
 // MapLibre GL style — real road hierarchy, glow, colour. Sits in the tile pane
 // under all the Leaflet markers.
+const STATION_NAMES = stations.map((s) => s.name);
+
 function VectorBasemap() {
   const map = useMap();
   useEffect(() => {
-    const style = buildMapStyle();
+    const style = buildMapStyle(STATION_NAMES);
     // @ts-expect-error - plugin augments the L namespace at runtime
     const gl = L.maplibreGL({ style, attribution: style.sources.carto.attribution });
     gl.addTo(map);
