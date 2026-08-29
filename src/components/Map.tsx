@@ -344,7 +344,8 @@ export function TrainMap({ searchQuery = "", center, origin }: { searchQuery?: s
   // Station markers don't depend on the vehicle feed — memoise so the 15s poll
   // doesn't rebuild ~600 markers every tick.
   const stationMarkers = useMemo(() => {
-    if (!showStations) return null;
+    // Keep the wide view clean & premium — only surface stops once zoomed in
+    if (!showStations || zoomLevel < 12) return null;
     return stations.map(station => {
       if (vehicleTypeFilter === 'trains' && station.type === 'bus') return null;
       if (vehicleTypeFilter === 'buses' && station.type === 'train') return null;
