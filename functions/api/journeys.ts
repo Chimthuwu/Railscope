@@ -27,6 +27,7 @@ export async function onRequest(context: any) {
   try {
     const res = await fetch(tfnswUrl, {
       headers: { Authorization: `apikey ${env.TFNSW_API_KEY}` },
+      signal: AbortSignal.timeout(8000),
     });
     
     if (!res.ok) throw new Error("TFNSW API Error");
@@ -46,6 +47,7 @@ export async function onRequest(context: any) {
       
       const fallbackRes = await fetch(fallbackUrl, {
         headers: { Authorization: `apikey ${env.TFNSW_API_KEY}` },
+      signal: AbortSignal.timeout(8000),
       });
       if (fallbackRes.ok) {
         const fallbackData = await fallbackRes.json();
