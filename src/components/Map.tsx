@@ -75,25 +75,28 @@ const formatStop = (stopId?: string) => {
   return hasLower && right.length > 2 ? right : left;
 };
 
-// Custom HTML icon using Lucide icons
+// Custom HTML icon using Lucide icons.
+// A route-coloured train/bus glyph with a white halo so it reads as a vehicle
+// (not a blob) and sits close to the size of the station dots.
 const createCustomIcon = (routeId: string, type?: string) => {
   const routeInfo = formatRoute(routeId, type);
-  const bgColor = routeInfo.color;
-  
+  const color = routeInfo.color;
+  const size = 20;
+
   const iconMarkup = renderToStaticMarkup(
-    <div style={{ position: "relative", width: "32px", height: "32px" }}>
-      <div className="live-pulse-beacon" style={{ backgroundColor: bgColor }}></div>
+    <div style={{ position: "relative", width: `${size}px`, height: `${size}px` }}>
+      <div className="live-pulse-beacon" style={{ backgroundColor: color }}></div>
       <div style={{
         position: "relative",
         zIndex: 2,
-        backgroundColor: bgColor,
-        width: "32px", height: "32px",
-        borderRadius: "50%", display: "flex",
-        alignItems: "center", justifyContent: "center",
-        border: "2px solid white", boxShadow: "0 2px 8px rgba(0,0,0,0.4)",
-        color: "white"
+        width: `${size}px`, height: `${size}px`,
+        display: "flex", alignItems: "center", justifyContent: "center",
+        color: color,
+        filter: "drop-shadow(0 0 1.5px #fff) drop-shadow(0 0 1.5px #fff) drop-shadow(0 1px 2px rgba(0,0,0,0.55))",
       }}>
-        {type === "bus" ? <Bus size={18} strokeWidth={2.5} /> : <Train size={18} strokeWidth={2.5} />}
+        {type === "bus"
+          ? <Bus size={size} strokeWidth={2.75} />
+          : <Train size={size} strokeWidth={2.75} />}
       </div>
     </div>
   );
@@ -101,9 +104,9 @@ const createCustomIcon = (routeId: string, type?: string) => {
   return L.divIcon({
     html: iconMarkup,
     className: 'custom-train-marker',
-    iconSize: [32, 32],
-    iconAnchor: [16, 16],
-    popupAnchor: [0, -16]
+    iconSize: [size, size],
+    iconAnchor: [size / 2, size / 2],
+    popupAnchor: [0, -(size / 2) - 2]
   });
 };
 

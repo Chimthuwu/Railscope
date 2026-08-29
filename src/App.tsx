@@ -250,7 +250,11 @@ export default function App() {
 
       <header className="h-14 shrink-0 border-b border-black/10 dark:border-white/5 flex items-center justify-between px-4 md:px-6 bg-white/80 dark:bg-[#09090B]/80 backdrop-blur-md z-40 transition-colors duration-300">
         <div className="flex items-center gap-3">
-          <img src="https://i.ibb.co/hJrGsCkQ/logo-and-text.png" alt="RailScope Logo" className="h-8" />
+          {/* stacked mark + wordmark; wordmark only goes white in dark mode for legibility */}
+          <div className="flex flex-col items-start gap-0.5">
+            <img src="https://i.ibb.co/JRdwvYJ4/just-logo.png" alt="RailScope" className="h-5" />
+            <img src="https://i.ibb.co/LdYh8g1f/just-text.png" alt="" className="h-2.5 dark:brightness-0 dark:invert" />
+          </div>
           <div className="h-4 w-px bg-black/10 dark:bg-white/10 hidden sm:block mx-1"></div>
           <div className="flex items-center gap-2">
             <a 
