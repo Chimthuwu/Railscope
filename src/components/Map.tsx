@@ -110,11 +110,12 @@ const formatStop = (stopId?: string) => {
 const vehicleSizeForZoom = (z: number) => (z < 11 ? 12 : z < 13 ? 15 : z < 15 ? 18 : 22);
 
 // Custom HTML icon using Lucide icons — a route-coloured train/bus glyph with a
-// thin edge and a soft coloured glow (no heavy white fill).
+// white halo and a pulsing "radar" beacon. Scales with zoom so it isn't
+// overpowering when zoomed out.
 const createCustomIcon = (routeId: string, type: string | undefined, size: number) => {
   const routeInfo = formatRoute(routeId, type);
   const color = routeInfo.color;
-  const beacon = Math.round(size * 0.8);
+  const beacon = Math.round(size * 0.9);
 
   const iconMarkup = renderToStaticMarkup(
     <div style={{ position: "relative", width: `${size}px`, height: `${size}px` }}>
@@ -128,11 +129,11 @@ const createCustomIcon = (routeId: string, type: string | undefined, size: numbe
         width: `${size}px`, height: `${size}px`,
         display: "flex", alignItems: "center", justifyContent: "center",
         color: color,
-        filter: `drop-shadow(0 0 0.5px rgba(255,255,255,0.7)) drop-shadow(0 0 3px ${color}) drop-shadow(0 1px 1.5px rgba(0,0,0,0.6))`,
+        filter: `drop-shadow(0 0 1.5px #fff) drop-shadow(0 0 1.5px #fff) drop-shadow(0 0 5px ${color}) drop-shadow(0 1px 2px rgba(0,0,0,0.55))`,
       }}>
         {type === "bus"
-          ? <Bus size={size} strokeWidth={2.5} />
-          : <Train size={size} strokeWidth={2.5} />}
+          ? <Bus size={size} strokeWidth={2.75} />
+          : <Train size={size} strokeWidth={2.75} />}
       </div>
     </div>
   );

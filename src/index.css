@@ -25,12 +25,12 @@ body {
 
 @keyframes livePulse {
   0% {
-    transform: scale(0.8);
-    opacity: 0.3;
+    transform: scale(0.9);
+    opacity: 0.5;
   }
   70%,
   100% {
-    transform: scale(1.8);
+    transform: scale(2.2);
     opacity: 0;
   }
 }
@@ -38,7 +38,7 @@ body {
 .live-pulse-beacon {
   position: absolute;
   border-radius: 50%;
-  animation: livePulse 2.4s infinite ease-out;
+  animation: livePulse 2s infinite ease-out;
   pointer-events: none;
 }
 .leaflet-popup-content-wrapper {
