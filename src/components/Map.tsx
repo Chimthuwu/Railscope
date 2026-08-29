@@ -90,7 +90,7 @@ const createCustomIcon = (routeId: string, type?: string) => {
         width: `${size}px`, height: `${size}px`,
         display: "flex", alignItems: "center", justifyContent: "center",
         color: color,
-        filter: "drop-shadow(0 0 1.5px #fff) drop-shadow(0 0 1.5px #fff) drop-shadow(0 1px 2px rgba(0,0,0,0.55))",
+        filter: `drop-shadow(0 0 1.5px #fff) drop-shadow(0 0 1.5px #fff) drop-shadow(0 0 5px ${color}) drop-shadow(0 1px 2px rgba(0,0,0,0.55))`,
       }}>
         {type === "bus"
           ? <Bus size={size} strokeWidth={2.75} />
@@ -178,6 +178,29 @@ const getStationIcon = (type: string, name: string, showText: boolean) => {
 const vehicleId = (t: any, index: number) =>
   t.id || t.vehicle?.vehicle?.id || t.vehicle?.trip?.tripId || `veh-${index}`;
 
+// Premium amber origin pin (the station you're travelling from)
+const originIconCache: Record<string, L.DivIcon> = {};
+const getOriginIcon = (name: string) => {
+  if (originIconCache[name]) return originIconCache[name];
+  const markup = renderToStaticMarkup(
+    <div style={{ position: "relative", display: "flex", alignItems: "center", gap: "7px", width: "max-content" }}>
+      <div style={{ position: "relative", width: "14px", height: "14px", flexShrink: 0 }}>
+        <div style={{ position: "absolute", inset: "-10px", borderRadius: "50%", background: "radial-gradient(circle, rgba(251,146,60,0.55), rgba(251,146,60,0) 70%)" }} />
+        <div style={{ position: "relative", width: "14px", height: "14px", borderRadius: "50%", background: "linear-gradient(145deg, #fdba74, #f97316)", border: "2px solid #fff7ed", boxShadow: "0 0 10px rgba(251,146,60,0.9)" }} />
+      </div>
+      <span style={{ fontSize: "13px", fontWeight: 800, color: "#fff", textShadow: "0 1px 4px rgba(0,0,0,0.95), 0 0 10px rgba(251,146,60,0.55)", whiteSpace: "nowrap", letterSpacing: "0.3px" }}>{name}</span>
+    </div>
+  );
+  originIconCache[name] = L.divIcon({
+    html: markup,
+    className: "custom-origin-marker",
+    iconSize: [14, 14],
+    iconAnchor: [7, 7],
+    popupAnchor: [0, -10],
+  });
+  return originIconCache[name];
+};
+
 // Stable map controller: handles the "pan to my location" event and flies to the
 // selected origin, but ONLY when that origin actually changes — so a 15s vehicle
 // poll (or any re-render) never yanks the map away from what you're looking at.
@@ -207,7 +230,7 @@ function MapController({ center, onZoom }: { center?: [number, number]; onZoom: 
 const ANIM_MS = 16000; // ease over slightly longer than the 15s poll, so trains never fully stop
 const SNAP_M = 3000; // jump instead of sliding for teleports / bad samples
 
-export function TrainMap({ searchQuery = "", center }: { searchQuery?: string, center?: [number, number] }) {
+export function TrainMap({ searchQuery = "", center, origin }: { searchQuery?: string, center?: [number, number], origin?: any }) {
   const [trains, setTrains] = useState<any[]>([]);
   const [vehicleTypeFilter, setVehicleTypeFilter] = useState<'both' | 'trains' | 'buses'>('both');
   const [showStations, setShowStations] = useState(true);
@@ -329,8 +352,11 @@ export function TrainMap({ searchQuery = "", center }: { searchQuery?: string, c
     return routeId.includes(q) || tripId.includes(q);
   });
 
+  const premium = resolvedTheme === 'dark';
+
   return (
-    <div className="w-full h-full relative">
+    <div className={`w-full h-full relative ${premium ? 'premium-map' : ''}`}>
+      {premium && <div className="map-atmosphere" />}
       {/* Control Overlay */}
       <div className="absolute top-4 right-4 z-[400] flex flex-col gap-2">
         <div className="bg-[#0C0C0E]/90 backdrop-blur-md rounded-xl p-1.5 border border-white/10 flex items-center shadow-lg">
@@ -385,10 +411,23 @@ export function TrainMap({ searchQuery = "", center }: { searchQuery?: string, c
         zoomControl={false}
       >
         <MapController center={center} onZoom={setZoomLevel} />
-        <TileLayer
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
-          url={resolvedTheme === 'dark' ? cartoTiles('dark_all') : cartoTiles('rastertiles/voyager')}
-        />
+        {premium ? (
+          <>
+            {/* geometry and labels on separate layers so the colour grade
+                (see .premium-map in index.css) only hits the geometry */}
+            <TileLayer
+              className="tiles-base"
+              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
+              url={cartoTiles('dark_nolabels')}
+            />
+            <TileLayer className="tiles-labels" url={cartoTiles('dark_only_labels')} />
+          </>
+        ) : (
+          <TileLayer
+            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
+            url={cartoTiles('rastertiles/voyager')}
+          />
+        )}
 
         {/* Render Stations / Stops */}
         {showStations && stations.map(station => {
@@ -422,6 +461,15 @@ export function TrainMap({ searchQuery = "", center }: { searchQuery?: string, c
             </Marker>
           );
         })}
+
+        {/* Origin station — premium amber pin */}
+        {origin?.lat && origin?.lng && (
+          <Marker
+            position={[origin.lat, origin.lng]}
+            icon={getOriginIcon(origin.name)}
+            zIndexOffset={1000}
+          />
+        )}
 
         {/* Render Vehicles */}
         {filteredTrains.map((train, index) => {

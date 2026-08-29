@@ -18,7 +18,7 @@ body {
 }
 
 /* Custom map marker styles */
-.custom-train-marker, .custom-station-marker {
+.custom-train-marker, .custom-station-marker, .custom-origin-marker {
   background: transparent;
   border: none;
 }
@@ -66,6 +66,35 @@ body {
 .leaflet-container {
   background: #09090b !important;
   font-family: inherit !important;
+}
+
+/* ── Premium dark basemap treatment ─────────────────────────────────────────
+   CARTO's dark raster tiles are flat grey. We can't re-render them (raster,
+   not vector), but we can colour-grade them toward a deep midnight-navy /
+   indigo palette and layer cinematic atmosphere on top. */
+.premium-map .leaflet-container {
+  background: #05070f !important;
+}
+/* base geometry layer: colour-graded toward midnight navy / indigo */
+.premium-map .tiles-base {
+  filter: brightness(0.82) contrast(1.08) sepia(0.55) hue-rotate(178deg)
+    saturate(1.9) brightness(0.82);
+}
+/* labels layer kept separate so street names stay clean white, not blue */
+.premium-map .tiles-labels {
+  filter: brightness(1.12) saturate(0.65);
+}
+/* soft radial glow + vignette, above tiles but below controls */
+.premium-map .map-atmosphere {
+  position: absolute;
+  inset: 0;
+  z-index: 350;
+  pointer-events: none;
+  background:
+    radial-gradient(75% 45% at 50% 0%, rgba(80, 120, 224, 0.10), transparent 70%),
+    radial-gradient(120% 85% at 50% 42%, rgba(56, 92, 190, 0.13) 0%,
+      rgba(60, 42, 128, 0.07) 38%, transparent 66%),
+    radial-gradient(145% 125% at 50% 55%, transparent 38%, rgba(3, 5, 16, 0.55) 100%);
 }
 
 @import "tw-animate-css";

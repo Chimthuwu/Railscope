@@ -577,7 +577,7 @@ export default function App() {
 
         {activeTab === 'map' && (
           <div className="flex-1 relative animate-in fade-in duration-300">
-            <TrainMap searchQuery="" center={fromStation ? [fromStation.lat, fromStation.lng] : undefined} />
+            <TrainMap searchQuery="" origin={fromStation} center={fromStation ? [fromStation.lat, fromStation.lng] : undefined} />
           </div>
         )}
 
