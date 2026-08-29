@@ -1,5 +1,5 @@
 import { useEffect, useState, useMemo } from "react";
-import { API_BASE } from "../lib/config";
+import { VEHICLES_API_BASE, CARTO_API_KEY } from "../lib/config";
 import { MapContainer, TileLayer, Marker, Popup, useMap, useMapEvents } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
@@ -8,13 +8,10 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { stations } from "../data/stations";
 import { useTheme } from "next-themes";
 
-// CARTO basemaps now require a free API key (https://carto.com/basemaps/apikey).
-// Provide it at build time via VITE_CARTO_API_KEY (.env locally; build env vars on
-// Cloudflare Pages / Render). Without it, tiles render with an "API KEY REQUIRED" watermark.
-const CARTO_KEY = import.meta.env.VITE_CARTO_API_KEY;
+// CARTO basemaps require a key (https://carto.com/basemaps/apikey); see config.ts.
 const cartoTiles = (style: string) =>
   `https://{s}.basemaps.cartocdn.com/${style}/{z}/{x}/{y}{r}.png` +
-  (CARTO_KEY ? `?key=${CARTO_KEY}` : "");
+  (CARTO_API_KEY ? `?key=${CARTO_API_KEY}` : "");
 
 // Route ID formatting
 const formatRoute = (routeId?: string, type?: string) => {
@@ -207,7 +204,7 @@ export function TrainMap({ searchQuery = "", center }: { searchQuery?: string, c
     // Fetch initial data
     const fetchTrains = async () => {
       try {
-        const res = await fetch(`${API_BASE}/api/vehicles?type=${vehicleTypeFilter}`);
+        const res = await fetch(`${VEHICLES_API_BASE}/api/vehicles?type=${vehicleTypeFilter}`);
         const data = await res.json();
         if (data.entities) {
           setTrains(data.entities);

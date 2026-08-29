@@ -37,8 +37,22 @@ sign in as the admin account, tap the **"Network Feed"** header 7 times, then hi
 
 - Native (Android / Electron) builds now point at `https://railscope-l98d.onrender.com`
   (see `src/lib/config.ts`).
-- The **web** app (`railscope.pages.dev`) still uses its own same-origin Cloudflare
-  Pages Functions (`functions/api/*`). Left as-is because the free Render instance
-  cold-starts after inactivity (~50s), which would hurt the web UX.
+- The **web** app (`railscope.pages.dev`) uses its own same-origin Cloudflare Pages
+  Functions (`functions/api/*`) for stations/journeys/departures/trip_details —
+  no cold start, keep these.
 - Decide whether Cloudflare is being retired too. If so, point web `API_BASE` at
   Render as well and drop `functions/`.
+
+## ⚠️ Missing Cloudflare function: `/api/vehicles`
+
+There is no `functions/api/vehicles.ts`, so on `railscope.pages.dev` the live
+vehicle map used to get the SPA HTML back and silently render nothing. Stopgap:
+`VEHICLES_API_BASE` in `config.ts` now routes the web map's vehicle polling to
+the Render backend (which has the endpoint). Downside: first load of the Map tab
+can cold-start Render (~50s).
+
+Proper fix: add `functions/api/vehicles.ts` porting the `/api/vehicles` handler
+from `server.ts`. It decodes GTFS-Realtime protobuf via `gtfs-realtime-bindings`,
+so the Pages project needs `nodejs_compat` — add a root `wrangler.toml` with
+`compatibility_flags = ["nodejs_compat"]` and a recent `compatibility_date`, then
+switch `VEHICLES_API_BASE` back to same-origin.
