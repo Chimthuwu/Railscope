@@ -229,10 +229,10 @@ export default function App() {
                     scale: { duration: 0.8, ease: "backOut" }
                   }}
                />
-               <motion.img 
+               {/* wordmark only: force to white in dark mode so it stays legible on the near-black splash */}
+               <motion.img
                   src="https://i.ibb.co/LdYh8g1f/just-text.png"
                   alt="RailScope Text"
-                  {/* wordmark only: force to white in dark mode so it stays legible on the near-black splash */}
                   className="h-8 md:h-10 dark:brightness-0 dark:invert"
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
