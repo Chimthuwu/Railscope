@@ -113,7 +113,7 @@ export default function App() {
   const rowVirtualizer = useVirtualizer({
     count: searchResults.length,
     getScrollElement: () => parentRef.current,
-    estimateSize: () => 72,
+    estimateSize: () => 68,
     overscan: 5,
   });
 
@@ -146,6 +146,9 @@ export default function App() {
       return;
     }
 
+    // Guard against a slow response for an earlier query landing after the user
+    // has typed more and merging stale stations into the current results.
+    let stale = false;
     const timer = setTimeout(() => {
       setSearching(true);
       fetch(`${API_BASE}/api/stations?q=${encodeURIComponent(searchQuery)}`)
@@ -158,6 +161,7 @@ export default function App() {
           return r.json();
         })
         .then(data => {
+          if (stale) return;
           if (data.locations) {
             setSearchResults(prev => {
               const merged = [...prev];
@@ -173,12 +177,16 @@ export default function App() {
           setSearching(false);
         })
         .catch(e => {
+          if (stale) return;
           console.error("Search failed", e);
           setSearching(false);
         });
     }, 500);
 
-    return () => clearTimeout(timer);
+    return () => {
+      stale = true;
+      clearTimeout(timer);
+    };
   }, [searchQuery]);
 
   const toggleFavourite = (station: any) => {

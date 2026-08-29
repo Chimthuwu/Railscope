@@ -192,11 +192,14 @@ export function Feed() {
     if (user?.email !== 'chimske@gmail.com') return;
     if (!window.confirm("WARNING: This will delete ALL posts in the feed. Are you sure?")) return;
     try {
-      const batch = writeBatch(db);
-      posts.forEach(post => {
-        batch.delete(doc(db, "posts", post.id));
-      });
-      await batch.commit();
+      // Firestore caps a WriteBatch at 500 operations
+      for (let i = 0; i < posts.length; i += 450) {
+        const batch = writeBatch(db);
+        for (const post of posts.slice(i, i + 450)) {
+          batch.delete(doc(db, "posts", post.id));
+        }
+        await batch.commit();
+      }
       setShowAdmin(false);
     } catch (error) {
       console.error("Failed to clear feed:", error);

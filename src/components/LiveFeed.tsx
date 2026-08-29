@@ -153,7 +153,6 @@ export function LiveFeed({ station, toStation }: { station: any, toStation?: any
   };
 
   if (selectedTrip) {
-    const isLate = selectedTrip.departureTimeEstimated && selectedTrip.departureTimePlanned && new Date(selectedTrip.departureTimeEstimated).getTime() > new Date(selectedTrip.departureTimePlanned).getTime() + 60000;
     const destName = selectedTrip.transportation?.destination?.name?.replace(/ Station.*/, '') || selectedTrip.transport?.name;
     
     return (

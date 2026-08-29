@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useMemo } from "react";
 import { VEHICLES_API_BASE, CARTO_API_KEY } from "../lib/config";
 import { MapContainer, TileLayer, Marker, Popup, useMap, useMapEvents } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
@@ -341,7 +341,37 @@ export function TrainMap({ searchQuery = "", center, origin }: { searchQuery?: s
     return () => clearInterval(interval);
   }, [vehicleTypeFilter]);
 
-  const filteredTrains = trains.filter(t => {
+  // Station markers don't depend on the vehicle feed — memoise so the 15s poll
+  // doesn't rebuild ~600 markers every tick.
+  const stationMarkers = useMemo(() => {
+    if (!showStations) return null;
+    return stations.map(station => {
+      if (vehicleTypeFilter === 'trains' && station.type === 'bus') return null;
+      if (vehicleTypeFilter === 'buses' && station.type === 'train') return null;
+      if (!station.lat || !station.lng) return null;
+      return (
+        <Marker
+          key={station.id}
+          position={[station.lat, station.lng]}
+          icon={getStationIcon(station.type || 'train', station.name, zoomLevel >= 13)}
+          eventHandlers={{
+            popupopen: () => setOpenStationId(station.id),
+            popupclose: () => setOpenStationId((prev) => (prev === station.id ? null : prev)),
+          }}
+        >
+          <Popup className="station-popup" maxWidth={276} minWidth={248} autoPanPadding={[18, 80]}>
+            <StationInfoCard
+              name={station.name}
+              type={station.type || 'train'}
+              active={openStationId === station.id}
+            />
+          </Popup>
+        </Marker>
+      );
+    });
+  }, [showStations, vehicleTypeFilter, zoomLevel, openStationId]);
+
+  const filteredTrains = useMemo(() => trains.filter(t => {
     if (vehicleTypeFilter === 'trains' && t._type === 'bus') return false;
     if (vehicleTypeFilter === 'buses' && t._type === 'train') return false;
 
@@ -350,7 +380,7 @@ export function TrainMap({ searchQuery = "", center, origin }: { searchQuery?: s
     const tripId = t.vehicle?.trip?.tripId?.toLowerCase() || "";
     const q = searchQuery.toLowerCase();
     return routeId.includes(q) || tripId.includes(q);
-  });
+  }), [trains, vehicleTypeFilter, searchQuery]);
 
   const premium = resolvedTheme === 'dark';
 
@@ -430,37 +460,7 @@ export function TrainMap({ searchQuery = "", center, origin }: { searchQuery?: s
         )}
 
         {/* Render Stations / Stops */}
-        {showStations && stations.map(station => {
-          if (vehicleTypeFilter === 'trains' && station.type === 'bus') return null;
-          if (vehicleTypeFilter === 'buses' && station.type === 'train') return null;
-          
-          if (!station.lat || !station.lng) return null;
-
-          return (
-            <Marker
-              key={station.id}
-              position={[station.lat, station.lng]}
-              icon={getStationIcon(station.type || 'train', station.name, zoomLevel >= 13)}
-              eventHandlers={{
-                popupopen: () => setOpenStationId(station.id),
-                popupclose: () => setOpenStationId((prev) => (prev === station.id ? null : prev)),
-              }}
-            >
-              <Popup
-                className="station-popup"
-                maxWidth={276}
-                minWidth={248}
-                autoPanPadding={[18, 80]}
-              >
-                <StationInfoCard
-                  name={station.name}
-                  type={station.type || 'train'}
-                  active={openStationId === station.id}
-                />
-              </Popup>
-            </Marker>
-          );
-        })}
+        {stationMarkers}
 
         {/* Origin station — premium amber pin */}
         {origin?.lat && origin?.lng && (
