@@ -26,9 +26,12 @@ const road = (
 // so a suburb name doesn't sit on top of its own station marker's label.
 export const buildMapStyle = (hideNames: string[] = []) => {
   const hidden = hideNames.map((n) => n.toLowerCase());
+  // Below z13 the station markers have no text, so suburb labels are fine.
+  // At z13+ the station labels appear, so drop any suburb label that duplicates one.
   const notAStation: any = [
-    "!",
-    ["in", ["downcase", ["to-string", ["coalesce", ["get", "name"], ""]]], ["literal", hidden]],
+    "any",
+    ["<", ["zoom"], 13],
+    ["!", ["in", ["downcase", ["to-string", ["coalesce", ["get", "name"], ""]]], ["literal", hidden]]],
   ];
 
   return ({
