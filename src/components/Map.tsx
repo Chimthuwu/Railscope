@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useRef } from "react";
 import { VEHICLES_API_BASE, CARTO_API_KEY } from "../lib/config";
 import { MapContainer, TileLayer, Marker, Popup, useMap, useMapEvents } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
@@ -175,6 +175,38 @@ const getStationIcon = (type: string, name: string, showText: boolean) => {
   return stationIconCache[key];
 };
 
+const vehicleId = (t: any, index: number) =>
+  t.id || t.vehicle?.vehicle?.id || t.vehicle?.trip?.tripId || `veh-${index}`;
+
+// Stable map controller: handles the "pan to my location" event and flies to the
+// selected origin, but ONLY when that origin actually changes — so a 15s vehicle
+// poll (or any re-render) never yanks the map away from what you're looking at.
+function MapController({ center, onZoom }: { center?: [number, number]; onZoom: (z: number) => void }) {
+  const map = useMap();
+  const appliedCenter = useRef<string>("");
+
+  useMapEvents({ zoomend: () => onZoom(map.getZoom()) });
+
+  useEffect(() => {
+    const handlePan = (e: any) => map.flyTo(e.detail, 15, { duration: 1.5 });
+    window.addEventListener("panTo", handlePan);
+    return () => window.removeEventListener("panTo", handlePan);
+  }, [map]);
+
+  useEffect(() => {
+    if (!center) return;
+    const key = `${center[0].toFixed(5)},${center[1].toFixed(5)}`;
+    if (key === appliedCenter.current) return;
+    appliedCenter.current = key;
+    map.flyTo(center, 14, { duration: 1.5 });
+  }, [center, map]);
+
+  return null;
+}
+
+const ANIM_MS = 16000; // ease over slightly longer than the 15s poll, so trains never fully stop
+const SNAP_M = 3000; // jump instead of sliding for teleports / bad samples
+
 export function TrainMap({ searchQuery = "", center }: { searchQuery?: string, center?: [number, number] }) {
   const [trains, setTrains] = useState<any[]>([]);
   const [vehicleTypeFilter, setVehicleTypeFilter] = useState<'both' | 'trains' | 'buses'>('both');
@@ -183,39 +215,104 @@ export function TrainMap({ searchQuery = "", center }: { searchQuery?: string, c
   const [zoomLevel, setZoomLevel] = useState(11);
   const { resolvedTheme } = useTheme();
 
-  // Map Updater sub-component to pan map
-  const MapUpdater = ({ center }: { center?: [number, number] }) => {
-    const map = useMap();
-    useMapEvents({
-      zoomend: () => setZoomLevel(map.getZoom())
-    });
-    useEffect(() => {
-      const handlePan = (e: any) => {
-        map.flyTo(e.detail, 15, { duration: 1.5 });
+  const mapRef = useRef<L.Map | null>(null);
+  const markerRefs = useRef(new Map<string, L.Marker>());
+  const refSetters = useRef(new Map<string, (m: L.Marker | null) => void>());
+  const firstPos = useRef(new Map<string, [number, number]>());
+  const anim = useRef(
+    new Map<string, { start: L.LatLng; target: L.LatLng; cur: L.LatLng; t0: number; dur: number; done: boolean }>()
+  );
+
+  // One stable ref callback per vehicle id (so re-renders don't churn the map)
+  const getRefSetter = (id: string) => {
+    let fn = refSetters.current.get(id);
+    if (!fn) {
+      fn = (m: L.Marker | null) => {
+        if (m) markerRefs.current.set(id, m);
+        else markerRefs.current.delete(id);
       };
-      window.addEventListener('panTo', handlePan);
-      if (center) {
-        map.flyTo(center, 14, { duration: 1.5 });
-      }
-      return () => window.removeEventListener('panTo', handlePan);
-    }, [center, map]);
-    return null;
+      refSetters.current.set(id, fn);
+    }
+    return fn;
   };
 
+  // rAF loop: every frame, ease each vehicle marker from its previous fix toward
+  // the latest one, so it glides between stops instead of teleporting every 15s.
   useEffect(() => {
-    // Fetch initial data
+    let raf = 0;
+    const tick = () => {
+      const now = performance.now();
+      let bounds: L.LatLngBounds | null = null;
+      try {
+        bounds = mapRef.current ? mapRef.current.getBounds().pad(0.25) : null;
+      } catch {
+        /* map not ready yet */
+      }
+      anim.current.forEach((s, id) => {
+        if (s.done) return;
+        const k = s.dur > 0 ? Math.min(1, (now - s.t0) / s.dur) : 1;
+        s.cur = L.latLng(
+          s.start.lat + (s.target.lat - s.start.lat) * k,
+          s.start.lng + (s.target.lng - s.start.lng) * k
+        );
+        if (k >= 1) s.done = true;
+        if (bounds && !bounds.contains(s.cur)) return; // skip off-screen work
+        markerRefs.current.get(id)?.setLatLng(s.cur);
+      });
+      raf = requestAnimationFrame(tick);
+    };
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+  }, []);
+
+  useEffect(() => {
+    const applyPositions = (entities: any[]) => {
+      const now = performance.now();
+      const seen = new Set<string>();
+      entities.forEach((e, i) => {
+        const p = e.vehicle?.position;
+        if (!p?.latitude || !p?.longitude) return;
+        const id = vehicleId(e, i);
+        seen.add(id);
+        const target = L.latLng(p.latitude, p.longitude);
+        const existing = anim.current.get(id);
+        if (!existing) {
+          firstPos.current.set(id, [p.latitude, p.longitude]);
+          anim.current.set(id, { start: target, target, cur: target, t0: now, dur: 0, done: true });
+          return;
+        }
+        const far = existing.cur.distanceTo(target) > SNAP_M;
+        anim.current.set(id, {
+          start: far ? target : existing.cur,
+          target,
+          cur: far ? target : existing.cur,
+          t0: now,
+          dur: far ? 0 : ANIM_MS,
+          done: far,
+        });
+      });
+      anim.current.forEach((_, id) => {
+        if (seen.has(id)) return;
+        anim.current.delete(id);
+        firstPos.current.delete(id);
+        markerRefs.current.delete(id);
+        refSetters.current.delete(id);
+      });
+    };
+
     const fetchTrains = async () => {
       try {
         const res = await fetch(`${VEHICLES_API_BASE}/api/vehicles?type=${vehicleTypeFilter}`);
         const data = await res.json();
         if (data.entities) {
+          applyPositions(data.entities);
           setTrains(data.entities);
         }
       } catch (err) {
         console.error("Failed to fetch vehicles", err);
       }
     };
-    
+
     fetchTrains();
     const interval = setInterval(fetchTrains, 15000); // Polling every 15s
     return () => clearInterval(interval);
@@ -280,13 +377,14 @@ export function TrainMap({ searchQuery = "", center }: { searchQuery?: string, c
         </div>
       </div>
 
-      <MapContainer 
-        center={[-33.8688, 151.2093]} 
-        zoom={11} 
+      <MapContainer
+        ref={mapRef}
+        center={[-33.8688, 151.2093]}
+        zoom={11}
         className="w-full h-full z-0"
         zoomControl={false}
       >
-        <MapUpdater center={center} />
+        <MapController center={center} onZoom={setZoomLevel} />
         <TileLayer
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
           url={resolvedTheme === 'dark' ? cartoTiles('dark_all') : cartoTiles('rastertiles/voyager')}
@@ -332,17 +430,18 @@ export function TrainMap({ searchQuery = "", center }: { searchQuery?: string, c
           
           const vehicleType = train._type;
           const routeId = train.vehicle?.trip?.routeId;
-          const trainId = train.id || train.vehicle?.vehicle?.id || train.vehicle?.trip?.tripId || `train-${index}`;
+          const trainId = vehicleId(train, index);
           const stopId = train.vehicle?.stopId;
           const currentStop = formatStop(stopId);
           const routeInfo = formatRoute(routeId, vehicleType);
           const speed = train.vehicle?.position?.speed ? Math.round(train.vehicle.position.speed * 3.6) : null;
           
           return (
-            <Marker 
-              key={trainId} 
-              position={[pos.latitude, pos.longitude]}
+            <Marker
+              key={trainId}
+              position={firstPos.current.get(trainId) ?? [pos.latitude, pos.longitude]}
               icon={getTrainIcon(routeId, vehicleType)}
+              ref={getRefSetter(trainId)}
             >
             <Popup className="rounded-xl min-w-[200px]">
               <div className="flex flex-col gap-2 p-1">
