@@ -219,8 +219,8 @@ export default function App() {
             <div className="flex flex-col items-center gap-6">
                <motion.img 
                   src="https://i.ibb.co/JRdwvYJ4/just-logo.png" 
-                  alt="RailScope Logo Mark" 
-                  className="h-20 md:h-24 dark:invert" 
+                  alt="RailScope Logo Mark"
+                  className="h-20 md:h-24"
                   initial={{ rotate: -1080, scale: 0 }}
                   animate={{ rotate: 0, scale: 1 }}
                   exit={{ scale: 25, opacity: 0, transition: { duration: 0.6, ease: "easeIn" } }}
@@ -231,8 +231,8 @@ export default function App() {
                />
                <motion.img 
                   src="https://i.ibb.co/LdYh8g1f/just-text.png" 
-                  alt="RailScope Text" 
-                  className="h-8 md:h-10 dark:invert" 
+                  alt="RailScope Text"
+                  className="h-8 md:h-10"
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, scale: 2, transition: { duration: 0.4 } }}
