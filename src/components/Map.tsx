@@ -430,8 +430,8 @@ export function TrainMap({ searchQuery = "", center, origin }: { searchQuery?: s
   const premium = isDark && WEBGL_OK;
 
   return (
-    <div className={`w-full h-full relative ${premium ? 'premium-map' : ''}`}>
-      {premium && <div className="map-atmosphere" />}
+    <div className={`w-full h-full relative ${isDark ? 'premium-map' : 'day-map'}`}>
+      <div className="map-atmosphere" />
       {/* Control Overlay */}
       <div className="absolute top-4 right-4 z-[400] flex flex-col gap-2">
         <div className="bg-[#0C0C0E]/90 backdrop-blur-md rounded-xl p-1.5 border border-white/10 flex items-center shadow-lg">
@@ -488,11 +488,20 @@ export function TrainMap({ searchQuery = "", center, origin }: { searchQuery?: s
         <MapController center={center} onZoom={setZoomLevel} />
         {premium ? (
           <VectorBasemap />
-        ) : (
+        ) : isDark ? (
           <TileLayer
             attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
-            url={cartoTiles(isDark ? 'dark_all' : 'rastertiles/voyager')}
+            url={cartoTiles('dark_all')}
           />
+        ) : (
+          <>
+            <TileLayer
+              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
+              url={cartoTiles('rastertiles/voyager_nolabels')}
+              className="day-tiles"
+            />
+            <TileLayer url={cartoTiles('rastertiles/voyager_only_labels')} />
+          </>
         )}
 
         {/* Render Stations / Stops */}

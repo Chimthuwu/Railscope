@@ -89,6 +89,23 @@ body {
   background: linear-gradient(to bottom, rgba(4, 6, 16, 0.35), transparent);
 }
 
+/* ── Day map: take the glare off CARTO Voyager ──────────────────────────────── */
+.day-map .leaflet-container {
+  background: #e9edf2 !important;
+}
+.day-map .day-tiles {
+  filter: brightness(0.95) saturate(0.82) contrast(0.94) sepia(0.06);
+}
+.day-map .map-atmosphere {
+  position: absolute;
+  inset: 0;
+  z-index: 350;
+  pointer-events: none;
+  background:
+    radial-gradient(120% 90% at 50% 45%, rgba(38, 54, 92, 0.05) 0%, transparent 55%),
+    radial-gradient(140% 120% at 50% 55%, transparent 55%, rgba(30, 42, 74, 0.12) 100%);
+}
+
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
 @import "@fontsource-variable/geist";
