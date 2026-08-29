@@ -51,9 +51,13 @@ switch `VEHICLES_API_BASE` back to same-origin.
 
 ## 🧰 Code-health backlog (from the review)
 
-- **Bundle is one 1.6 MB chunk** (~460 KB gzip). Lazy-load the heavy tabs:
-  `Map.tsx` (Leaflet) and `Feed.tsx` (Firebase) behind `React.lazy` so the
-  first paint doesn't ship them.
+- **Bundle is one ~2.4 MB chunk** (~690 KB gzip) — MapLibre GL added ~800 KB.
+  This is now the priority: lazy-load `Map.tsx` (Leaflet + MapLibre) and
+  `Feed.tsx` (Firebase) behind `React.lazy` so the first paint doesn't ship
+  them. Map + Feed are separate tabs — ideal split points.
+- **Test the map on a real iPhone.** MapLibre GL needs WebGL; if a device
+  blocklists it the vector basemap goes blank (light mode raster is the safe
+  fallback — consider auto-falling back if `!maplibregl.supported()`).
 - **Map tab remounts on every tab switch** — loses pan/zoom and restarts the
   poll + rAF each visit. Keep `<TrainMap>` mounted and toggle with `hidden`.
 - **Unused / misplaced deps**: `@google/genai`, `react-window`,

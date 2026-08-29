@@ -15,6 +15,16 @@ import { buildMapStyle } from "../lib/mapStyle";
 
 if (typeof window !== "undefined") (window as any).maplibregl = maplibregl;
 
+const WEBGL_OK = (() => {
+  if (typeof document === "undefined") return false;
+  try {
+    const c = document.createElement("canvas");
+    return !!(c.getContext("webgl2") || c.getContext("webgl"));
+  } catch {
+    return false;
+  }
+})();
+
 // Vector basemap (dark mode): CARTO free vector tiles rendered with our custom
 // MapLibre GL style — real road hierarchy, glow, colour. Sits in the tile pane
 // under all the Leaflet markers.
@@ -411,7 +421,9 @@ export function TrainMap({ searchQuery = "", center, origin }: { searchQuery?: s
     return routeId.includes(q) || tripId.includes(q);
   }), [trains, vehicleTypeFilter, searchQuery]);
 
-  const premium = resolvedTheme === 'dark';
+  const isDark = resolvedTheme === 'dark';
+  // Vector basemap needs WebGL; fall back to raster dark tiles if unavailable.
+  const premium = isDark && WEBGL_OK;
 
   return (
     <div className={`w-full h-full relative ${premium ? 'premium-map' : ''}`}>
@@ -475,7 +487,7 @@ export function TrainMap({ searchQuery = "", center, origin }: { searchQuery?: s
         ) : (
           <TileLayer
             attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
-            url={cartoTiles('rastertiles/voyager')}
+            url={cartoTiles(isDark ? 'dark_all' : 'rastertiles/voyager')}
           />
         )}
 
