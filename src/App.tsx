@@ -230,9 +230,10 @@ export default function App() {
                   }}
                />
                <motion.img 
-                  src="https://i.ibb.co/LdYh8g1f/just-text.png" 
+                  src="https://i.ibb.co/LdYh8g1f/just-text.png"
                   alt="RailScope Text"
-                  className="h-8 md:h-10"
+                  {/* wordmark only: force to white in dark mode so it stays legible on the near-black splash */}
+                  className="h-8 md:h-10 dark:brightness-0 dark:invert"
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, scale: 2, transition: { duration: 0.4 } }}
