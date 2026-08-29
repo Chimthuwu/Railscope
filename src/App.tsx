@@ -119,23 +119,26 @@ export default function App() {
 
   useEffect(() => {
     const q = searchQuery.toLowerCase();
-    let localMatches = [...stations];
-    
-    if (q) {
-      localMatches = localMatches.filter(s => s.name.toLowerCase().includes(q));
-      localMatches.sort((a, b) => {
-        const aLower = a.name.toLowerCase();
-        const bLower = b.name.toLowerCase();
+
+    // Prefix matches float to the top; everything else is fully alphabetical
+    // (localeCompare, so "Cardiff" < "Central" < "Chester Hill" < "Circular Quay").
+    const compareStations = (a: any, b: any) => {
+      const aLower = (a.name || "").toLowerCase();
+      const bLower = (b.name || "").toLowerCase();
+      if (q) {
         const aStarts = aLower.startsWith(q);
         const bStarts = bLower.startsWith(q);
-        
         if (aStarts && !bStarts) return -1;
         if (!aStarts && bStarts) return 1;
-        return aLower.localeCompare(bLower);
-      });
-    } else {
-      localMatches.sort((a, b) => a.name.localeCompare(b.name));
+      }
+      return aLower.localeCompare(bLower);
+    };
+
+    let localMatches = [...stations];
+    if (q) {
+      localMatches = localMatches.filter(s => s.name.toLowerCase().includes(q));
     }
+    localMatches.sort(compareStations);
 
     setSearchResults(localMatches);
 
@@ -163,6 +166,7 @@ export default function App() {
                   merged.push(loc);
                 }
               }
+              merged.sort(compareStations);
               return merged;
             });
           }
@@ -245,7 +249,7 @@ export default function App() {
 
       <header className="h-14 shrink-0 border-b border-black/10 dark:border-white/5 flex items-center justify-between px-4 md:px-6 bg-white/80 dark:bg-[#09090B]/80 backdrop-blur-md z-40 transition-colors duration-300">
         <div className="flex items-center gap-3">
-          <img src="https://i.ibb.co/hJrGsCkQ/logo-and-text.png" alt="RailScope Logo" className="h-8 dark:invert" />
+          <img src="https://i.ibb.co/hJrGsCkQ/logo-and-text.png" alt="RailScope Logo" className="h-8" />
           <div className="h-4 w-px bg-black/10 dark:bg-white/10 hidden sm:block mx-1"></div>
           <div className="flex items-center gap-2">
             <a 

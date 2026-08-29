@@ -1,0 +1,24 @@
+# Render Blueprint for the RailScope API proxy / web server.
+# Runs the Express server in server.ts (bundled to dist/server.cjs by `npm run build`).
+#
+# If you set the service up manually in the Render dashboard, match these:
+#   Build Command:  npm install && npm run build
+#   Start Command:  npm start
+#   Env var:        TFNSW_API_KEY = <your key>
+#
+# Do NOT set NODE_ENV=production on Render: that makes `npm install` skip
+# devDependencies (vite, esbuild), which breaks `npm run build`. The server
+# detects Render via the RENDER=true env var that Render always sets, and
+# serves the built frontend accordingly (see IS_PRODUCTION in server.ts).
+services:
+  - type: web
+    name: railscope
+    runtime: node
+    plan: free
+    region: singapore
+    branch: main
+    buildCommand: npm install && npm run build
+    startCommand: npm start
+    envVars:
+      - key: TFNSW_API_KEY
+        sync: false

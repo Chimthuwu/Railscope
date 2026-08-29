@@ -3,9 +3,28 @@ import path from "path";
 import axios from "axios";
 import gtfs from "gtfs-realtime-bindings";
 
+// Render (and most hosts) inject PORT and expect the app to bind to it.
+// Render also always sets RENDER=true, which we use as a "serve the built app" signal
+// so `npm run dev` keeps using the Vite middleware locally without extra env setup.
+const PORT = Number(process.env.PORT) || 3000;
+const IS_PRODUCTION =
+  process.env.NODE_ENV === "production" || process.env.RENDER === "true";
+
 async function startServer() {
   const app = express();
-  const PORT = 3000;
+
+  // CORS: the native apps (Capacitor / Electron) call this server cross-origin.
+  // Mirrors functions/api/_middleware.ts on the Cloudflare deployment.
+  app.use((req, res, next) => {
+    res.header("Access-Control-Allow-Origin", "*");
+    res.header("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+    res.header("Access-Control-Allow-Headers", "Content-Type, Authorization");
+    if (req.method === "OPTIONS") {
+      res.sendStatus(204);
+      return;
+    }
+    next();
+  });
 
   // TfNSW API Route - Vehicle Positions
   app.get("/api/vehicles", async (req, res) => {
@@ -313,7 +332,7 @@ async function startServer() {
   });
 
   // Vite middleware for development
-  if (process.env.NODE_ENV !== "production") {
+  if (!IS_PRODUCTION) {
     const Vite = await import("vite");
     const vite = await Vite.createServer({
       server: { middlewareMode: true },
@@ -329,7 +348,7 @@ async function startServer() {
   }
 
   app.listen(PORT, "0.0.0.0", () => {
-    console.log(`Server running on port ${PORT}`);
+    console.log(`Server running on port ${PORT} (${IS_PRODUCTION ? "production" : "development"})`);
   });
 }
 
