@@ -400,12 +400,23 @@ export default function App() {
                           <p className="text-black dark:text-white font-medium leading-none">{fromStation.name}</p>
                         </div>
                       </div>
-                      <button 
-                        onClick={() => setFromStation(null)}
-                        className="text-slate-500 hover:text-slate-700 dark:text-slate-500 dark:hover:text-slate-300 px-2 py-1 text-xs font-semibold uppercase tracking-wider transition-colors"
-                      >
-                        Change
-                      </button>
+                      <div className="flex gap-2 items-center">
+                        <button 
+                          onClick={() => {
+                            window.dispatchEvent(new CustomEvent('panTo', { detail: [fromStation.lat, fromStation.lng] }));
+                            setActiveTab('map');
+                          }}
+                          className="text-blue-500 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 px-2 py-1 text-xs font-bold uppercase tracking-wider transition-colors flex items-center gap-1"
+                        >
+                          <MapIcon size={12} /> Map
+                        </button>
+                        <button 
+                          onClick={() => setFromStation(null)}
+                          className="text-slate-500 hover:text-slate-700 dark:text-slate-500 dark:hover:text-slate-300 px-2 py-1 text-xs font-semibold uppercase tracking-wider transition-colors"
+                        >
+                          Change
+                        </button>
+                      </div>
                     </div>
                   )}
 
@@ -616,7 +627,7 @@ export default function App() {
                 </div>
               </div>
             )}
-            <TrainMap searchQuery={mapSearchQuery} origin={fromStation} center={fromStation ? [fromStation.lat, fromStation.lng] : undefined} />
+            <TrainMap searchQuery={mapSearchQuery} origin={fromStation} />
           </div>
         )}
 
