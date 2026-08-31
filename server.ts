@@ -2,6 +2,11 @@ import express from "express";
 import path from "path";
 import axios from "axios";
 import gtfs from "gtfs-realtime-bindings";
+import { stations } from "./src/data/stations";
+
+// Station names, fed to AssemblyAI as keyterms so voice search nails proper
+// nouns like "Hurstville", "Woy Woy", "Warrawee" instead of guessing.
+const STATION_KEYTERMS = Array.from(new Set(stations.map((s) => s.name)));
 
 // Render (and most hosts) inject PORT and expect the app to bind to it.
 // Render also always sets RENDER=true, which we use as a "serve the built app" signal
@@ -348,6 +353,78 @@ async function startServer() {
       res.json({ status: "error", error: "Failed to fetch trip details", stops: [] });
     }
   });
+
+  // Voice search - AssemblyAI speech-to-text proxy.
+  // The browser records a short clip and POSTs the raw audio bytes here; we
+  // upload it to AssemblyAI, transcribe with the station list as keyterms, and
+  // return the text. The API key never leaves the server.
+  const AAI_BASE = "https://api.assemblyai.com";
+  app.post(
+    "/api/transcribe",
+    express.raw({ type: () => true, limit: "20mb" }),
+    async (req, res) => {
+      try {
+        const apiKey = process.env.ASSEMBLYAI_API_KEY;
+        if (!apiKey || apiKey === "MY_ASSEMBLYAI_API_KEY") {
+          return res.status(200).json({ status: "disabled", text: "" });
+        }
+
+        const audio = req.body as Buffer;
+        if (!audio || !audio.length) {
+          return res.status(400).json({ status: "error", error: "No audio received", text: "" });
+        }
+
+        const prose = String(req.query.mode || "station") === "prose";
+        const headers = { Authorization: apiKey };
+
+        // 1. Upload the raw audio (binary body, not multipart).
+        const upload = await axios.post(`${AAI_BASE}/v2/upload`, audio, {
+          headers: { ...headers, "Content-Type": "application/octet-stream" },
+          timeout: 20000,
+          maxBodyLength: Infinity,
+        });
+        const audioUrl = upload.data?.upload_url;
+        if (!audioUrl) throw new Error("upload failed");
+
+        // 2. Submit for transcription.
+        const submit = await axios.post(
+          `${AAI_BASE}/v2/transcript`,
+          {
+            audio_url: audioUrl,
+            speech_models: ["universal-3-5-pro", "universal-2"],
+            ...(prose
+              ? { punctuate: true, format_text: true }
+              : { keyterms_prompt: STATION_KEYTERMS, punctuate: false, format_text: false }),
+          },
+          { headers: { ...headers, "Content-Type": "application/json" }, timeout: 15000 },
+        );
+        const id = submit.data?.id;
+        if (!id) throw new Error("submit failed");
+
+        // 3. Poll until done (short clips finish in a few seconds).
+        const deadline = Date.now() + 30000;
+        while (Date.now() < deadline) {
+          await new Promise((r) => setTimeout(r, 1000));
+          const poll = await axios.get(`${AAI_BASE}/v2/transcript/${id}`, {
+            headers,
+            timeout: 10000,
+          });
+          const { status, text, error } = poll.data || {};
+          if (status === "completed") {
+            return res.json({ status: "ok", text: (text || "").trim() });
+          }
+          if (status === "error") {
+            console.log("[Transcribe] AssemblyAI error:", error);
+            return res.status(502).json({ status: "error", error: error || "transcription failed", text: "" });
+          }
+        }
+        return res.status(504).json({ status: "error", error: "timed out", text: "" });
+      } catch (err) {
+        console.log("[Transcribe] failed:", err instanceof Error ? err.message : "Unknown");
+        res.status(502).json({ status: "error", error: "Transcription unavailable", text: "" });
+      }
+    },
+  );
 
   // Vite middleware for development
   if (!IS_PRODUCTION) {

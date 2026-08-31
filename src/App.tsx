@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { API_BASE } from './lib/config';
+import { startVoiceSearch, type VoiceSession } from './lib/voiceSearch';
 import { useTheme } from "next-themes";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { TrainMap } from "./components/Map";
@@ -65,7 +66,8 @@ export default function App() {
   const [mapSearchQuery, setMapSearchQuery] = useState("");
   const [mapSearchContext, setMapSearchContext] = useState("");
   const [isListening, setIsListening] = useState(false);
-  const recognitionRef = useRef<any>(null);
+  const [voiceProcessing, setVoiceProcessing] = useState(false);
+  const voiceSessionRef = useRef<VoiceSession | null>(null);
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
 
   useEffect(() => {
@@ -101,63 +103,32 @@ export default function App() {
     }
   };
 
-  const handleVoiceSearch = () => {
-    // Already running — a second tap stops it.
-    if (recognitionRef.current) {
-      try { recognitionRef.current.stop(); } catch { /* noop */ }
+  const handleVoiceSearch = async () => {
+    // Already recording — a second tap finishes and transcribes.
+    if (voiceSessionRef.current) {
+      voiceSessionRef.current.stop();
       return;
     }
+    if (voiceProcessing) return;
 
-    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
-    if (!SpeechRecognition) {
-      alert("Voice search isn't supported here. Try Chrome, Edge, or Safari — the packaged desktop app can't do voice search.");
-      return;
-    }
-
-    const recognition = new SpeechRecognition();
-    recognition.continuous = false;
-    recognition.interimResults = false;
-    recognition.lang = "en-AU";
-    recognition.maxAlternatives = 1;
-
-    // Keep a reference for the lifetime of the session — without this the browser
-    // can garbage-collect the recognition object mid-listen, which ends it
-    // instantly (the mic light flicks on then straight back off).
-    recognitionRef.current = recognition;
-
-    recognition.onstart = () => setIsListening(true);
-    recognition.onend = () => {
-      setIsListening(false);
-      recognitionRef.current = null;
-    };
-    recognition.onerror = (e: any) => {
-      setIsListening(false);
-      recognitionRef.current = null;
-      if (e?.error === "not-allowed" || e?.error === "service-not-allowed") {
-        alert("Microphone access is blocked. Allow the mic for this site in your browser settings and try again.");
-      } else if (e?.error === "no-speech") {
-        alert("Didn't catch that — tap the mic and say the station name.");
-      } else if (e?.error === "network") {
-        alert("Voice search needs an internet connection and isn't available in the packaged desktop app.");
-      } else if (e?.error && e.error !== "aborted") {
-        console.error("Speech recognition error:", e.error);
-      }
-    };
-
-    recognition.onresult = (event: any) => {
-      const transcript = event.results[0][0].transcript;
-      const cleaned = transcript.replace(/[.,\/#!$%\^&\*;:{}=\-_`~()]/g, "").trim();
-      setSearchQuery(cleaned);
-    };
-
-    try {
-      recognition.start();
-    } catch (err) {
-      // start() throws if called while already starting — reset and let the user retry.
-      recognitionRef.current = null;
-      setIsListening(false);
-      console.error("Could not start voice search:", err);
-    }
+    voiceSessionRef.current = await startVoiceSearch({
+      onStart: () => setIsListening(true),
+      onProcessing: () => {
+        setIsListening(false);
+        setVoiceProcessing(true);
+      },
+      onResult: (text) => {
+        voiceSessionRef.current = null;
+        setVoiceProcessing(false);
+        setSearchQuery(text);
+      },
+      onError: (message) => {
+        voiceSessionRef.current = null;
+        setIsListening(false);
+        setVoiceProcessing(false);
+        alert(message);
+      },
+    });
   };
 
   const [searchResults, setSearchResults] = useState<any[]>([]);
@@ -470,10 +441,11 @@ export default function App() {
                     <button
                       type="button"
                       onClick={handleVoiceSearch}
-                      className={`absolute right-3 top-1/2 -translate-y-1/2 p-2 rounded-full transition-all ${isListening ? 'bg-red-500 text-white animate-pulse scale-110 shadow-lg shadow-red-500/50' : 'text-slate-400 hover:text-blue-500 dark:hover:text-blue-400 hover:bg-slate-100 dark:hover:bg-white/5'}`}
-                      title={isListening ? "Listening... Speak station name" : "Voice Search (Speak station name)"}
+                      disabled={voiceProcessing}
+                      className={`absolute right-3 top-1/2 -translate-y-1/2 p-2 rounded-full transition-all ${isListening ? 'bg-red-500 text-white animate-pulse scale-110 shadow-lg shadow-red-500/50' : voiceProcessing ? 'text-blue-500 dark:text-blue-400' : 'text-slate-400 hover:text-blue-500 dark:hover:text-blue-400 hover:bg-slate-100 dark:hover:bg-white/5'}`}
+                      title={isListening ? "Listening — tap to finish" : voiceProcessing ? "Transcribing…" : "Voice search (speak a station name)"}
                     >
-                      <Mic size={18} />
+                      <Mic size={18} className={voiceProcessing ? 'animate-pulse' : ''} />
                     </button>
                   </div>
                 </div>

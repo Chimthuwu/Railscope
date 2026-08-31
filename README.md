@@ -99,6 +99,7 @@ artificial paywalls for saving your favourite stations or routine commutes.
 - **Node.js 18+**
 - A free **TfNSW API key** from the [TfNSW Open Data Hub](https://opendata.transport.nsw.gov.au/)
 - A free **CARTO API key** for map tiles from [carto.com/basemaps/apikey](https://carto.com/basemaps/apikey)
+- *(optional)* An **AssemblyAI API key** for voice search from [assemblyai.com/dashboard/api-keys](https://www.assemblyai.com/dashboard/api-keys)
 
 ### Install &amp; run
 
@@ -114,6 +115,7 @@ npm install
 cp .env.example .env    # then edit .env:
 #   TFNSW_API_KEY="..."        (server-side, used by the API proxy)
 #   VITE_CARTO_API_KEY="..."   (inlined into the frontend build for map tiles)
+#   ASSEMBLYAI_API_KEY="..."   (optional, server-side, powers voice search)
 
 # 4. Start the dev server (Express + Vite on http://localhost:3000)
 npm run dev
@@ -154,6 +156,7 @@ build, since `VITE_CARTO_API_KEY` is inlined into the bundle):
 |---|---|
 | `TFNSW_API_KEY` | TfNSW API proxy (used by the Pages Functions in [`functions/api/`](functions/api)) |
 | `VITE_CARTO_API_KEY` | CARTO basemap map tiles |
+| `ASSEMBLYAI_API_KEY` | *(optional)* voice search speech-to-text (`functions/api/transcribe.ts`) |
 
 ### Render (self-hosted API / native app backend)
 
@@ -164,7 +167,7 @@ manually, use:
 |---|---|
 | Build command | `npm install && npm run build` |
 | Start command | `npm start` |
-| Environment | `TFNSW_API_KEY=<your key>`, `VITE_CARTO_API_KEY=<your key>` |
+| Environment | `TFNSW_API_KEY=<your key>`, `VITE_CARTO_API_KEY=<your key>`, `ASSEMBLYAI_API_KEY=<your key>` (optional) |
 
 > **Note:** don't set `NODE_ENV=production` on Render — it makes `npm install` skip the
 > build tools. The server detects Render automatically and serves the built frontend.
