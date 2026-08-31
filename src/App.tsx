@@ -297,7 +297,7 @@ export default function App() {
       </header>
 
       {/* Main Content Area */}
-      <main className="flex-1 flex flex-col overflow-hidden">
+      <main className="flex-1 flex flex-col overflow-hidden pb-[calc(4rem+env(safe-area-inset-bottom))]">
         {activeTab === 'home' && (
           <div className="flex flex-col flex-1 min-h-0 w-full max-w-2xl mx-auto p-4 sm:p-6">
             {fromStation && toStation ? (
@@ -611,7 +611,7 @@ export default function App() {
       </main>
 
       {/* Bottom Navigation */}
-      <nav className="shrink-0 h-16 border-t border-black/10 dark:border-white/5 bg-[#eceee9]/90 dark:bg-[#0C0C0E]/95 backdrop-blur-xl w-full flex items-center justify-around px-4 sm:px-10 z-50 transition-colors duration-300 pb-[env(safe-area-inset-bottom)] box-content">
+      <nav className="fixed bottom-0 left-0 right-0 h-16 border-t border-black/10 dark:border-white/5 bg-[#eceee9]/90 dark:bg-[#0C0C0E]/95 backdrop-blur-xl flex items-center justify-around px-4 sm:px-10 z-50 transition-colors duration-300 pb-[env(safe-area-inset-bottom)] box-content">
         <button onClick={() => setActiveTab('home')} className={`flex flex-col items-center gap-1.5 w-16 md:w-20 transition-colors ${activeTab === 'home' ? 'text-blue-600 dark:text-blue-400' : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'}`}>
           <Search size={22} className={activeTab === 'home' ? 'fill-blue-500/20' : ''} />
           <span className="text-[10px] font-bold tracking-wider uppercase">Search</span>
