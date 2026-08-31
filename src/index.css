@@ -60,6 +60,10 @@ body {
   background: #09090b !important;
   font-family: inherit !important;
 }
+/* Hide the on-map CARTO / OpenStreetMap / Leaflet attribution badge. */
+.leaflet-control-attribution {
+  display: none !important;
+}
 
 /* ── Premium dark basemap treatment ─────────────────────────────────────────
    CARTO's dark raster tiles are flat grey. We can't re-render them (raster,

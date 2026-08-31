@@ -526,6 +526,7 @@ export function TrainMap({ searchQuery = "", center, origin }: { searchQuery?: s
         zoom={11}
         className="w-full h-full z-0"
         zoomControl={false}
+        attributionControl={false}
       >
         <MapController center={center} onZoom={setZoomLevel} />
         {vector ? (

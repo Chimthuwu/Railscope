@@ -35,7 +35,7 @@ community network feed — with zero ads, zero paywalls, and zero subscriptions.
     <td width="33%"><img src="docs/screenshots/service-details.png" alt="Stop-by-stop service details" /></td>
   </tr>
   <tr>
-    <td align="center"><b>Instant station search</b><br/><sub>Fuzzy-match any NSW station in 1–2 keystrokes</sub></td>
+    <td align="center"><b>Instant station search</b><br/><sub>Quick, efficient search across every NSW station</sub></td>
     <td align="center"><b>Live departures</b><br/><sub>Real-time countdowns, platforms &amp; service alerts</sub></td>
     <td align="center"><b>Service details</b><br/><sub>Follow one train through every stop on its run</sub></td>
   </tr>
@@ -45,9 +45,8 @@ community network feed — with zero ads, zero paywalls, and zero subscriptions.
 
 ## 💡 Why RailScope?
 
-Let's be honest: **the incumbent Sydney timetable apps are rough.** They're bloated with
-invasive ads, charge money just to save your daily trips or hide advertising, and feel
-sluggish on a modern phone.
+Let's be honest: **TripView is trash.** It's bloated with invasive ads, charges money
+just to save your daily trips or hide advertising, and feels sluggish on a modern phone.
 
 **RailScope was built out of frustration with that paywalled, ad-ridden status quo.** It's
 100% free, fast, responsive, and completely open-source. No subscriptions, no ads, and no
@@ -59,7 +58,7 @@ artificial paywalls for saving your favourite stations or routine commutes.
 
 | | |
 |---|---|
-| 🔍 **Conversational station search** | Guided *"Where from?"* → *"Where to?"* flow with zero-latency local fuzzy matching — no waiting on the network to find your station. |
+| 🔍 **Conversational station search** | Guided *"Where from?"* → *"Where to?"* flow with a quick, efficient local search — no waiting on the network to find your station. |
 | 🚆 **Live departures & countdowns** | Real-time departure times, minutes-to-go, platform numbers, and an **Alerts** tab for disruptions on your route. |
 | 🧭 **Stop-by-stop service details** | Tap any service to see its full stop sequence with timings and platforms, so you always know how many stops are left. |
 | 🗺️ **Live interactive map** | Real-time Sydney Trains &amp; bus positions on a Leaflet map with speed and route badges, polled continuously. |
