@@ -50,11 +50,12 @@ jobs:
         run: |
           chmod +x ./gradlew
           ./gradlew assembleDebug
+          mv app/build/outputs/apk/debug/app-debug.apk app/build/outputs/apk/debug/RailScope.apk
       - name: Upload Android Artifact
         uses: actions/upload-artifact@v4
         with:
           name: android-build
-          path: android/app/build/outputs/apk/debug/app-debug.apk
+          path: android/app/build/outputs/apk/debug/RailScope.apk
 
   release:
     needs: [build-windows, build-android]
@@ -75,7 +76,7 @@ jobs:
           name: Release ${{ github.event.inputs.version }}
           files: |
             windows/*.exe
-            android/app-debug.apk
+            android/RailScope.apk
           draft: false
           prerelease: false
         env:
