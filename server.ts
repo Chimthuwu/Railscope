@@ -102,10 +102,12 @@ async function startServer() {
       
       if (type === "trains" || type === "both") {
         promises.push(fetchFeed("https://api.transport.nsw.gov.au/v2/gtfs/vehiclepos/sydneytrains", "train"));
+        promises.push(fetchFeed("https://api.transport.nsw.gov.au/v2/gtfs/tripupdates/sydneytrains", "train_update"));
       }
       
       if (type === "buses" || type === "both") {
         promises.push(fetchFeed("https://api.transport.nsw.gov.au/v1/gtfs/vehiclepos/buses", "bus"));
+        // promises.push(fetchFeed("https://api.transport.nsw.gov.au/v1/gtfs/tripupdates/buses", "bus_update")); // optional, might be slow for buses
       }
 
       const results = await Promise.all(promises);

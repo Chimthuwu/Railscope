@@ -371,8 +371,22 @@ export function TrainMap({ searchQuery = "", center, origin }: { searchQuery?: s
         const res = await fetch(`${VEHICLES_API_BASE}/api/vehicles?type=${vehicleTypeFilter}`);
         const data = await res.json();
         if (data.entities) {
-          applyPositions(data.entities);
-          setTrains(data.entities);
+          const v = data.entities.filter((e: any) => e.vehicle);
+          const tu = data.entities.filter((e: any) => e.tripUpdate);
+          
+          const tuMap = new Map();
+          tu.forEach((t: any) => tuMap.set(t.tripUpdate.trip.tripId, t.tripUpdate));
+          
+          const merged = v.map((vehicleEntity: any) => {
+             const tid = vehicleEntity.vehicle?.trip?.tripId;
+             if (tid && tuMap.has(tid)) {
+               return { ...vehicleEntity, tripUpdate: tuMap.get(tid) };
+             }
+             return vehicleEntity;
+          });
+
+          applyPositions(merged);
+          setTrains(merged);
         }
       } catch (err) {
         console.error("Failed to fetch vehicles", err);
@@ -528,6 +542,25 @@ export function TrainMap({ searchQuery = "", center, origin }: { searchQuery?: s
           const trainId = vehicleId(train, index);
           const stopId = train.vehicle?.stopId;
           const currentStop = formatStop(stopId);
+          
+          let nextStop = null;
+          let terminus = null;
+          if (train.tripUpdate?.stopTimeUpdate?.length > 0) {
+            const stu = train.tripUpdate.stopTimeUpdate;
+            
+            // Find next stop (first stop in stopTimeUpdate that is not the current stopId)
+            const futureStops = stu.filter((s: any) => s.stopId !== stopId);
+            if (futureStops.length > 0) {
+              nextStop = formatStop(futureStops[0].stopId);
+            }
+            
+            // Terminus is the last stop in the updates
+            const last = stu[stu.length - 1];
+            if (last && last.stopId) {
+              terminus = formatStop(last.stopId);
+            }
+          }
+          
           const routeInfo = formatRoute(routeId, vehicleType);
           const speed = train.vehicle?.position?.speed ? Math.round(train.vehicle.position.speed * 3.6) : null;
 
@@ -556,6 +589,18 @@ export function TrainMap({ searchQuery = "", center, origin }: { searchQuery?: s
                     <div className="flex justify-between items-center">
                       <span className="text-slate-400 text-xs uppercase tracking-wider">At/Near</span>
                       <span className="font-medium">{currentStop}</span>
+                    </div>
+                  )}
+                  {nextStop && nextStop !== currentStop && (
+                    <div className="flex justify-between items-center">
+                      <span className="text-slate-400 text-xs uppercase tracking-wider">Next</span>
+                      <span className="font-medium text-blue-400">{nextStop}</span>
+                    </div>
+                  )}
+                  {terminus && terminus !== currentStop && (
+                    <div className="flex justify-between items-center">
+                      <span className="text-slate-400 text-xs uppercase tracking-wider">Terminates</span>
+                      <span className="font-medium text-orange-400">{terminus}</span>
                     </div>
                   )}
                   {speed !== null && speed > 0 && (

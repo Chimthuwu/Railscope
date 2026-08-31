@@ -62,16 +62,26 @@ export default function App() {
   const [favourites, setFavourites] = useState<any[]>(() => lsGet<any[]>('favourites', []));
   const [savedJourneys, setSavedJourneys] = useState<any[]>(() => lsGet<any[]>('savedJourneys', []));
   const [searchQuery, setSearchQuery] = useState("");
+  const [mapSearchQuery, setMapSearchQuery] = useState("");
   const [isListening, setIsListening] = useState(false);
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
 
   useEffect(() => {
+    const handleViewOnMap = (e: any) => {
+      setMapSearchQuery(e.detail);
+      setActiveTab('map');
+    };
+    window.addEventListener('viewOnMap', handleViewOnMap);
+    
     const handleBeforeInstall = (e: Event) => {
       e.preventDefault();
       setDeferredPrompt(e);
     };
     window.addEventListener('beforeinstallprompt', handleBeforeInstall);
-    return () => window.removeEventListener('beforeinstallprompt', handleBeforeInstall);
+    return () => {
+      window.removeEventListener('viewOnMap', handleViewOnMap);
+      window.removeEventListener('beforeinstallprompt', handleBeforeInstall);
+    };
   }, []);
 
   const handleInstallApp = () => {
@@ -597,7 +607,7 @@ export default function App() {
 
         {activeTab === 'map' && (
           <div className="flex-1 relative animate-in fade-in duration-300">
-            <TrainMap searchQuery="" origin={fromStation} center={fromStation ? [fromStation.lat, fromStation.lng] : undefined} />
+            <TrainMap searchQuery={mapSearchQuery} origin={fromStation} center={fromStation ? [fromStation.lat, fromStation.lng] : undefined} />
           </div>
         )}
 

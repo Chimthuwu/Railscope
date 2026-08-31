@@ -164,10 +164,24 @@ export function LiveFeed({ station, toStation }: { station: any, toStation?: any
           >
             <ChevronLeft size={18} className="text-black dark:text-white" />
           </button>
-          <div>
+          <div className="flex-1">
             <h3 className="text-sm font-bold text-black dark:text-white leading-tight">{destName}</h3>
             <p className="text-[10px] text-slate-500 dark:text-slate-400 font-medium uppercase tracking-widest leading-tight">Service Details</p>
           </div>
+          <button
+            onClick={() => {
+              const tripId = selectedTrip.transportation?.properties?.RealtimeTripId || selectedTrip.properties?.RealtimeTripId || '';
+              if (tripId) {
+                window.dispatchEvent(new CustomEvent('viewOnMap', { detail: tripId }));
+              } else {
+                alert("Live location not available for this service.");
+              }
+            }}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-blue-500/10 text-blue-600 dark:text-blue-400 hover:bg-blue-500/20 transition-colors text-xs font-bold uppercase tracking-wider shadow-sm"
+          >
+            <Navigation size={14} />
+            Live Map
+          </button>
         </div>
 
         <ScrollArea className="flex-1 -mx-2 px-2 h-full">
