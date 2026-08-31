@@ -81,11 +81,11 @@ artificial paywalls for saving your favourite stations or routine commutes.
 
 ## 📦 Download
 
-| Platform | Link |
+| Platform | Where |
 |---|---|
-| 🌐 **Web (any device)** | **[railscope.pages.dev](https://railscope.pages.dev)** — installable as a PWA from your browser menu |
-| 🤖 **Android** | [Download `.apk`](https://github.com/Chimthuwu/Railscope/releases) from the releases page |
-| 🪟 **Windows** | [Download the installer `.exe`](https://github.com/Chimthuwu/Railscope/releases) from the releases page |
+| **Web** &mdash; any device | [**railscope.pages.dev**](https://railscope.pages.dev) &nbsp;&middot;&nbsp; installable as a PWA from your browser menu |
+| **Android** &mdash; APK | [Latest release](https://github.com/Chimthuwu/Railscope/releases/latest) |
+| **Windows** &mdash; EXE installer | [Latest release](https://github.com/Chimthuwu/Railscope/releases/latest) |
 
 ---
 
