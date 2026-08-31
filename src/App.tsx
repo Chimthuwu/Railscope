@@ -469,15 +469,6 @@ export default function App() {
                           >
                             <div className="flex items-center gap-2 group border border-transparent hover:border-black/5 dark:hover:border-white/5 hover:bg-slate-50 dark:hover:bg-white/5 rounded-xl transition-colors h-[68px]">
                                <button 
-                                 onPointerDown={(e) => {
-                                   e.preventDefault(); // Crucial for iOS: prevents keyboard dismiss from swallowing the tap
-                                   if (!fromStation) {
-                                     setFromStation(s);
-                                   } else {
-                                     setToStation(s);
-                                   }
-                                   setSearchQuery("");
-                                 }}
                                  onClick={() => {
                                    if (!fromStation) {
                                      setFromStation(s);
