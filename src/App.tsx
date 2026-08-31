@@ -63,12 +63,14 @@ export default function App() {
   const [savedJourneys, setSavedJourneys] = useState<any[]>(() => lsGet<any[]>('savedJourneys', []));
   const [searchQuery, setSearchQuery] = useState("");
   const [mapSearchQuery, setMapSearchQuery] = useState("");
+  const [mapSearchContext, setMapSearchContext] = useState("");
   const [isListening, setIsListening] = useState(false);
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
 
   useEffect(() => {
     const handleViewOnMap = (e: any) => {
-      setMapSearchQuery(e.detail);
+      setMapSearchQuery(e.detail.tripId);
+      setMapSearchContext(e.detail.destName || "");
       setActiveTab('map');
     };
     window.addEventListener('viewOnMap', handleViewOnMap);
@@ -608,14 +610,19 @@ export default function App() {
         {activeTab === 'map' && (
           <div className="flex-1 relative animate-in fade-in duration-300">
             {mapSearchQuery && (
-              <div className="absolute top-4 left-4 z-[400]">
-                <button
-                  onClick={() => setMapSearchQuery('')}
-                  className="bg-white/90 dark:bg-[#0C0C0E]/90 backdrop-blur-md px-4 py-2 rounded-xl text-sm font-semibold border border-black/10 dark:border-white/10 shadow-lg flex items-center gap-2"
-                >
-                  <ArrowLeft size={16} />
-                  Clear Filter
-                </button>
+              <div className="absolute top-4 left-0 right-0 z-[400] flex justify-center px-4 pointer-events-none">
+                <div className="bg-white/95 dark:bg-[#0C0C0E]/95 backdrop-blur-md pl-4 pr-1 py-1 rounded-full text-xs font-semibold border border-black/10 dark:border-white/10 shadow-lg flex items-center gap-3 pointer-events-auto max-w-full">
+                  <span className="truncate text-slate-700 dark:text-slate-300">
+                    Now viewing <strong className="text-blue-600 dark:text-blue-400">{mapSearchContext}</strong> Service
+                  </span>
+                  <button
+                    onClick={() => { setMapSearchQuery(''); setMapSearchContext(''); }}
+                    className="w-7 h-7 rounded-full bg-black/5 dark:bg-white/10 flex items-center justify-center hover:bg-black/10 dark:hover:bg-white/20 transition-colors shrink-0"
+                    title="Clear filter"
+                  >
+                    <ArrowLeft size={14} className="text-slate-700 dark:text-slate-300" />
+                  </button>
+                </div>
               </div>
             )}
             <TrainMap searchQuery={mapSearchQuery} origin={fromStation} center={fromStation ? [fromStation.lat, fromStation.lng] : undefined} />

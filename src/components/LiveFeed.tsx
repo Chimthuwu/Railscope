@@ -172,7 +172,7 @@ export function LiveFeed({ station, toStation }: { station: any, toStation?: any
             onClick={() => {
               const tripId = selectedTrip.transportation?.properties?.RealtimeTripId || selectedTrip.properties?.RealtimeTripId || '';
               if (tripId) {
-                window.dispatchEvent(new CustomEvent('viewOnMap', { detail: tripId }));
+                window.dispatchEvent(new CustomEvent('viewOnMap', { detail: { tripId, destName } }));
               } else {
                 alert("Live location not available for this service.");
               }
