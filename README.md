@@ -39,6 +39,16 @@ community network feed — with zero ads, zero paywalls, and zero subscriptions.
     <td align="center"><b>Live departures</b><br/><sub>Real-time countdowns, platforms &amp; service alerts</sub></td>
     <td align="center"><b>Service details</b><br/><sub>Follow one train through every stop on its run</sub></td>
   </tr>
+  <tr>
+    <td width="33%"><img src="docs/screenshots/live-map.png" alt="Live vehicle map" /></td>
+    <td width="33%"><img src="docs/screenshots/saved-journeys.png" alt="Saved journeys" /></td>
+    <td width="33%"></td>
+  </tr>
+  <tr>
+    <td align="center"><b>Live vehicle map</b><br/><sub>Every train &amp; bus in NSW, moving in real time</sub></td>
+    <td align="center"><b>Saved journeys</b><br/><sub>One tap back to the trips you take every day</sub></td>
+    <td></td>
+  </tr>
 </table>
 
 ---
