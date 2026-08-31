@@ -42,12 +42,12 @@ community network feed — with zero ads, zero paywalls, and zero subscriptions.
   <tr>
     <td width="33%"><img src="docs/screenshots/live-map.png" alt="Live vehicle map" /></td>
     <td width="33%"><img src="docs/screenshots/saved-journeys.png" alt="Saved journeys" /></td>
-    <td width="33%"></td>
+    <td width="33%"><img src="docs/screenshots/voice-search.png" alt="Voice search" /></td>
   </tr>
   <tr>
     <td align="center"><b>Live vehicle map</b><br/><sub>Every train &amp; bus in NSW, moving in real time</sub></td>
     <td align="center"><b>Saved journeys</b><br/><sub>One tap back to the trips you take every day</sub></td>
-    <td></td>
+    <td align="center"><b>Voice search</b><br/><sub>Tap the mic and say a station name</sub></td>
   </tr>
 </table>
 
