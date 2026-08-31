@@ -287,7 +287,7 @@ export default function App() {
           <div className="h-4 w-px bg-black/10 dark:bg-white/10 hidden sm:block mx-1"></div>
           <div className="flex items-center gap-2">
             <a
-              href="https://github.com/Chimthuwu/Railscope/releases/latest/download/RailScope.apk"
+              href="https://github.com/Chimthuwu/Railscope/releases/latest"
               target="_blank"
               rel="noopener noreferrer"
               className="flex items-center gap-1.5 text-xs font-bold bg-slate-100 hover:bg-slate-200 dark:bg-white/10 dark:hover:bg-white/20 text-slate-700 dark:text-slate-200 px-3 py-1.5 rounded-full transition-colors"
@@ -297,7 +297,7 @@ export default function App() {
               <span className="hidden sm:inline">Android</span>
             </a>
             <a
-              href="https://github.com/Chimthuwu/Railscope/releases/latest/download/RailScope-Setup.exe"
+              href="https://github.com/Chimthuwu/Railscope/releases/latest"
               target="_blank"
               rel="noopener noreferrer"
               className="flex items-center gap-1.5 text-xs font-bold bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded-full transition-colors shadow-sm"

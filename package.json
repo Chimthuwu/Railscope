@@ -26,7 +26,7 @@
     ],
     "win": {
       "icon": "public/icon.png",
-      "artifactName": "RailScope-Setup.${ext}",
+      "artifactName": "RailScope-Windows-Setup-v${version}.${ext}",
       "target": [
         "nsis",
         "portable"
