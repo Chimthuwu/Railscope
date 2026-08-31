@@ -631,7 +631,7 @@ export default function App() {
                 </div>
               </div>
             )}
-            <TrainMap searchQuery={mapSearchQuery} origin={fromStation} />
+            <TrainMap searchQuery={mapSearchQuery} origin={fromStation} filterBannerActive={!!mapSearchQuery} />
           </div>
         )}
 

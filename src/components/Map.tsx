@@ -279,7 +279,7 @@ function MapController({ center, onZoom }: { center?: [number, number]; onZoom: 
 const ANIM_MS = 16000; // ease over slightly longer than the 15s poll, so trains never fully stop
 const SNAP_M = 3000; // jump instead of sliding for teleports / bad samples
 
-export function TrainMap({ searchQuery = "", center, origin }: { searchQuery?: string, center?: [number, number], origin?: any }) {
+export function TrainMap({ searchQuery = "", center, origin, filterBannerActive = false }: { searchQuery?: string, center?: [number, number], origin?: any, filterBannerActive?: boolean }) {
   const [trains, setTrains] = useState<any[]>([]);
   const [vehicleTypeFilter, setVehicleTypeFilter] = useState<'both' | 'trains' | 'buses'>('both');
   const [showStations, setShowStations] = useState(true);
@@ -480,8 +480,8 @@ export function TrainMap({ searchQuery = "", center, origin }: { searchQuery?: s
   return (
     <div className={`w-full h-full relative ${isDark ? 'premium-map' : 'day-map'}`}>
       <div className="map-atmosphere" />
-      {/* Control Overlay */}
-      <div className="absolute top-4 right-4 z-[400] flex flex-col gap-2">
+      {/* Control Overlay — drops below the "Now viewing" banner when a trip filter is active */}
+      <div className={`absolute right-4 z-[400] flex flex-col gap-2 transition-[top] ${filterBannerActive ? 'top-16' : 'top-4'}`}>
         <div className="bg-[#0C0C0E]/90 backdrop-blur-md rounded-xl p-1.5 border border-white/10 flex items-center shadow-lg">
           <button 
             onClick={() => setVehicleTypeFilter('both')}
