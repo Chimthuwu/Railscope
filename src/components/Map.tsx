@@ -121,8 +121,11 @@ const vehicleSizeForZoom = (z: number) => (z < 11 ? 12 : z < 13 ? 15 : z < 15 ? 
 // Custom HTML icon using Lucide icons — a route-coloured train/bus glyph with a
 // white halo and a pulsing "radar" beacon. Scales with zoom so it isn't
 // overpowering when zoomed out.
-// Buses: lavender-filled glyph with a neon-pink outline + glow (no white halo —
-// it blew the clustered bus markers out to bright blobs).
+//
+// Buses get a quieter treatment: a lavender-filled glyph with a thin neon-pink
+// outline and NO glow / beacon. There are hundreds of them on screen at once, so
+// the glowing white halo the trains use turned the map into a wall of bright
+// blobs.
 const BUS_FILL = "#b794f6";
 const BUS_OUTLINE = "#ff2d95";
 
@@ -130,15 +133,16 @@ const createCustomIcon = (routeId: string, type: string | undefined, size: numbe
   const routeInfo = formatRoute(routeId, type);
   const color = routeInfo.color;
   const isBus = type === "bus";
-  const beacon = Math.round(size * (isBus ? 0.7 : 0.9));
-  const beaconColor = isBus ? BUS_OUTLINE : color;
+  const beacon = Math.round(size * 0.9);
 
   const iconMarkup = renderToStaticMarkup(
     <div style={{ position: "relative", width: `${size}px`, height: `${size}px` }}>
-      <div
-        className="live-pulse-beacon"
-        style={{ backgroundColor: beaconColor, opacity: isBus ? 0.6 : 1, width: `${beacon}px`, height: `${beacon}px`, left: `${(size - beacon) / 2}px`, top: `${(size - beacon) / 2}px` }}
-      ></div>
+      {!isBus && (
+        <div
+          className="live-pulse-beacon"
+          style={{ backgroundColor: color, width: `${beacon}px`, height: `${beacon}px`, left: `${(size - beacon) / 2}px`, top: `${(size - beacon) / 2}px` }}
+        ></div>
+      )}
       <div style={{
         position: "relative",
         zIndex: 2,
@@ -146,11 +150,11 @@ const createCustomIcon = (routeId: string, type: string | undefined, size: numbe
         display: "flex", alignItems: "center", justifyContent: "center",
         color: isBus ? BUS_OUTLINE : color,
         filter: isBus
-          ? `drop-shadow(0 0 2px rgba(0,0,0,0.75)) drop-shadow(0 0 4px ${BUS_OUTLINE}88) drop-shadow(0 1px 2px rgba(0,0,0,0.5))`
+          ? `drop-shadow(0 0 1px rgba(0,0,0,0.95)) drop-shadow(0 1px 1.5px rgba(0,0,0,0.6))`
           : `drop-shadow(0 0 1.5px #fff) drop-shadow(0 0 1.5px #fff) drop-shadow(0 0 5px ${color}) drop-shadow(0 1px 2px rgba(0,0,0,0.55))`,
       }}>
         {isBus
-          ? <Bus size={size} strokeWidth={2.25} fill={BUS_FILL} />
+          ? <Bus size={Math.round(size * 0.9)} strokeWidth={1.75} fill={BUS_FILL} />
           : <Train size={size} strokeWidth={2.75} />}
       </div>
     </div>
