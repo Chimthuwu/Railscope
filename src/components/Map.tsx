@@ -56,7 +56,7 @@ const formatRoute = (routeId?: string, type?: string) => {
     // Clean up bus route ID (e.g. from "2502_840" to "Bus 840" or just use route ID smartly)
     // Sometimes bus route IDs are separated by underscores. The actual route number is often the last part.
     let number = routeId ? routeId.split('_').pop() : "Unknown";
-    return { name: `Bus ${number}`, color: "#b794f6" }; // lavender — distinct from the cool basemap and every train-line colour
+    return { name: `Bus ${number}`, color: "#60a5fa" }; // link-blue — matches the app's blue accent, distinct from every train-line colour
   }
 
   if (!routeId) return { name: "Unknown Route", color: "#333" };
@@ -121,40 +121,27 @@ const vehicleSizeForZoom = (z: number) => (z < 11 ? 12 : z < 13 ? 15 : z < 15 ? 
 // Custom HTML icon using Lucide icons — a route-coloured train/bus glyph with a
 // white halo and a pulsing "radar" beacon. Scales with zoom so it isn't
 // overpowering when zoomed out.
-//
-// Buses get a quieter treatment: a lavender-filled glyph with a thin neon-pink
-// outline and NO glow / beacon. There are hundreds of them on screen at once, so
-// the glowing white halo the trains use turned the map into a wall of bright
-// blobs.
-const BUS_FILL = "#b794f6";
-const BUS_OUTLINE = "#ff2d95";
-
 const createCustomIcon = (routeId: string, type: string | undefined, size: number) => {
   const routeInfo = formatRoute(routeId, type);
   const color = routeInfo.color;
-  const isBus = type === "bus";
   const beacon = Math.round(size * 0.9);
 
   const iconMarkup = renderToStaticMarkup(
     <div style={{ position: "relative", width: `${size}px`, height: `${size}px` }}>
-      {!isBus && (
-        <div
-          className="live-pulse-beacon"
-          style={{ backgroundColor: color, width: `${beacon}px`, height: `${beacon}px`, left: `${(size - beacon) / 2}px`, top: `${(size - beacon) / 2}px` }}
-        ></div>
-      )}
+      <div
+        className="live-pulse-beacon"
+        style={{ backgroundColor: color, width: `${beacon}px`, height: `${beacon}px`, left: `${(size - beacon) / 2}px`, top: `${(size - beacon) / 2}px` }}
+      ></div>
       <div style={{
         position: "relative",
         zIndex: 2,
         width: `${size}px`, height: `${size}px`,
         display: "flex", alignItems: "center", justifyContent: "center",
-        color: isBus ? BUS_OUTLINE : color,
-        filter: isBus
-          ? `drop-shadow(0 0 1px rgba(0,0,0,0.95)) drop-shadow(0 1px 1.5px rgba(0,0,0,0.6))`
-          : `drop-shadow(0 0 1.5px #fff) drop-shadow(0 0 1.5px #fff) drop-shadow(0 0 5px ${color}) drop-shadow(0 1px 2px rgba(0,0,0,0.55))`,
+        color: color,
+        filter: `drop-shadow(0 0 1.5px #fff) drop-shadow(0 0 1.5px #fff) drop-shadow(0 0 5px ${color}) drop-shadow(0 1px 2px rgba(0,0,0,0.55))`,
       }}>
-        {isBus
-          ? <Bus size={Math.round(size * 0.9)} strokeWidth={1.75} fill={BUS_FILL} />
+        {type === "bus"
+          ? <Bus size={size} strokeWidth={2.75} />
           : <Train size={size} strokeWidth={2.75} />}
       </div>
     </div>
@@ -172,7 +159,7 @@ const createCustomIcon = (routeId: string, type: string | undefined, size: numbe
 const createStationIcon = (type: string, name: string, showText: boolean) => {
   const isBus = type === "bus";
   // cool-toned so amber stays reserved for the origin pin
-  const ringColor = isBus ? "#b794f6" : "#8fa6d4";
+  const ringColor = isBus ? "#60a5fa" : "#8fa6d4";
 
   // Small ringed node with the name beside it
   const iconMarkup = renderToStaticMarkup(
