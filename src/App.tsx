@@ -607,6 +607,17 @@ export default function App() {
 
         {activeTab === 'map' && (
           <div className="flex-1 relative animate-in fade-in duration-300">
+            {mapSearchQuery && (
+              <div className="absolute top-4 left-4 z-[400]">
+                <button
+                  onClick={() => setMapSearchQuery('')}
+                  className="bg-white/90 dark:bg-[#0C0C0E]/90 backdrop-blur-md px-4 py-2 rounded-xl text-sm font-semibold border border-black/10 dark:border-white/10 shadow-lg flex items-center gap-2"
+                >
+                  <ArrowLeft size={16} />
+                  Clear Filter
+                </button>
+              </div>
+            )}
             <TrainMap searchQuery={mapSearchQuery} origin={fromStation} center={fromStation ? [fromStation.lat, fromStation.lng] : undefined} />
           </div>
         )}
@@ -634,7 +645,7 @@ export default function App() {
           <MessageSquare size={22} className={activeTab === 'feed' ? 'fill-blue-500/20' : ''} />
           <span className="text-[10px] font-bold tracking-wider uppercase">Feed</span>
         </button>
-        <button onClick={() => setActiveTab('map')} className={`flex flex-col items-center gap-1.5 w-16 md:w-20 transition-colors ${activeTab === 'map' ? 'text-blue-600 dark:text-blue-400' : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'}`}>
+        <button onClick={() => { setActiveTab('map'); setMapSearchQuery(''); }} className={`flex flex-col items-center gap-1.5 w-16 md:w-20 transition-colors ${activeTab === 'map' ? 'text-blue-600 dark:text-blue-400' : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'}`}>
           <MapIcon size={22} className={activeTab === 'map' ? 'fill-blue-500/20' : ''} />
           <span className="text-[10px] font-bold tracking-wider uppercase">Map</span>
         </button>

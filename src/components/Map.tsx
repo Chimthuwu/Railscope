@@ -441,6 +441,32 @@ export function TrainMap({ searchQuery = "", center, origin }: { searchQuery?: s
     return routeId.includes(q) || tripId.includes(q);
   }), [trains, vehicleTypeFilter, searchQuery]);
 
+  const lastPanQuery = useRef("");
+  useEffect(() => {
+    if (searchQuery && filteredTrains.length === 1 && mapRef.current) {
+      if (lastPanQuery.current !== searchQuery) {
+        lastPanQuery.current = searchQuery;
+        const pos = filteredTrains[0].vehicle?.position;
+        if (pos?.latitude && pos?.longitude) {
+          mapRef.current.flyTo([pos.latitude, pos.longitude], 15, { duration: 1.5 });
+          
+          // Open popup after flying
+          setTimeout(() => {
+            // Find the original index of this train in the 'trains' array to match the marker ID
+            const originalIndex = trains.findIndex(t => t === filteredTrains[0]);
+            const id = vehicleId(filteredTrains[0], originalIndex);
+            const marker = markerRefs.current.get(id);
+            if (marker) {
+              marker.openPopup();
+            }
+          }, 1500);
+        }
+      }
+    } else if (!searchQuery) {
+      lastPanQuery.current = "";
+    }
+  }, [searchQuery, filteredTrains, trains]);
+
   const isDark = resolvedTheme !== 'light'; // default to dark before theme resolves
   // Vector basemap needs WebGL; fall back to raster tiles if unavailable.
   const vector = WEBGL_OK;
