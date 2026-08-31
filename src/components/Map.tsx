@@ -606,17 +606,14 @@ export function TrainMap({ searchQuery = "", center, origin }: { searchQuery?: s
             >
             <Popup className="rounded-xl min-w-[200px]">
               <div className="flex flex-col gap-2 p-1">
-                <div className="font-bold text-sm tracking-tight flex flex-col gap-1">
-                  <div className="flex items-center gap-2">
-                    <div 
-                      className="w-3 h-3 rounded-full flex-shrink-0" 
-                      style={{backgroundColor: routeInfo.color}}
-                    ></div>
-                    <span style={{color: routeInfo.color}}>{routeInfo.name}</span>
-                  </div>
-                  {routeId && <span className="text-xs text-muted-foreground opacity-70 ml-5 flex items-center">{routeId}</span>}
+                <div className="font-bold text-sm tracking-tight flex items-center gap-2">
+                  <div
+                    className="w-3 h-3 rounded-full flex-shrink-0"
+                    style={{backgroundColor: routeInfo.color}}
+                  ></div>
+                  <span style={{color: routeInfo.color}}>{routeInfo.name}</span>
                 </div>
-                
+
                 <div className="flex flex-col gap-1 mt-1 text-sm bg-slate-900 text-slate-200 p-2 rounded-lg">
                   {currentStop && (
                     <div className="flex justify-between items-center">
@@ -642,10 +639,6 @@ export function TrainMap({ searchQuery = "", center, origin }: { searchQuery?: s
                       <span className="font-medium">{speed} km/h</span>
                     </div>
                   )}
-                  <div className="flex justify-between items-center opacity-50 mt-1 pt-1 border-t border-slate-800">
-                    <span className="text-[10px] uppercase font-mono">Trip ID</span>
-                    <span className="text-[10px] font-mono" title={train.vehicle?.trip?.tripId}>{train.vehicle?.trip?.tripId?.split('.')[0] || "Unknown"}</span>
-                  </div>
                 </div>
               </div>
             </Popup>
