@@ -9,6 +9,7 @@ import "@maplibre/maplibre-gl-leaflet";
 import { Train, Bus, MapPin, Layers } from "lucide-react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { stations } from "../data/stations";
+import { STOP_NAMES } from "../data/stopNames";
 import { useTheme } from "next-themes";
 import { StationInfoCard } from "./StationInfoCard";
 import { buildMapStyle } from "../lib/mapStyle";
@@ -91,18 +92,23 @@ const formatRoute = (routeId?: string, type?: string) => {
 
 const formatStop = (stopId?: string) => {
   if (!stopId) return null;
+
+  // Vehicle-feed stopTimeUpdate entries carry bare GTFS stop IDs (e.g.
+  // "2223292"). Resolve those to a station name via the generated lookup.
+  if (STOP_NAMES[stopId]) return STOP_NAMES[stopId];
+
   if (!stopId.includes('.')) return stopId;
-  
+
   const parts = stopId.split('.');
   const left = parts[0];
   let right = parts[1] || '';
-  
+
   // Clean up right side
   right = right.replace(/\s?\d+\s?Loc/gi, "")
                .replace(/\s?Loc/gi, "")
                .replace(/\s?Exit/gi, "")
                .trim();
-  
+
   // If right side has lowercase letters, it's likely a station name (e.g. "Town Hall")
   // If it's mostly uppercase/numbers (e.g. "SM644BER"), it's a signal, so fallback to left (e.g. "Sydenham")
   const hasLower = /[a-z]/.test(right);
@@ -620,7 +626,7 @@ export function TrainMap({ searchQuery = "", center, origin }: { searchQuery?: s
                   )}
                   {nextStop && nextStop !== currentStop && (
                     <div className="flex justify-between items-center">
-                      <span className="text-slate-400 text-xs uppercase tracking-wider">Next</span>
+                      <span className="text-slate-400 text-xs uppercase tracking-wider">Next Stop</span>
                       <span className="font-medium text-blue-400">{nextStop}</span>
                     </div>
                   )}
