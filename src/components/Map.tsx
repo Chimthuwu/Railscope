@@ -573,20 +573,23 @@ export function TrainMap({ searchQuery = "", center, origin, filterBannerActive 
           const vehicleType = train._type;
           const routeId = train.vehicle?.trip?.routeId;
           const trainId = vehicleId(train, index);
+          // The vehicle-position feed's stopId is often stale (it pointed at
+          // Hornsby for a train sitting at Redfern), so we don't surface an
+          // "At/Near" — but it's still useful for skipping the current stop
+          // when picking "Next Stop".
           const stopId = train.vehicle?.stopId;
-          const currentStop = formatStop(stopId);
-          
+
           let nextStop = null;
           let terminus = null;
           if (train.tripUpdate?.stopTimeUpdate?.length > 0) {
             const stu = train.tripUpdate.stopTimeUpdate;
-            
-            // Find next stop (first stop in stopTimeUpdate that is not the current stopId)
+
+            // Next stop: first update that isn't the (possibly stale) current stop
             const futureStops = stu.filter((s: any) => s.stopId !== stopId);
             if (futureStops.length > 0) {
               nextStop = formatStop(futureStops[0].stopId);
             }
-            
+
             // Terminus is the last stop in the updates
             const last = stu[stu.length - 1];
             if (last && last.stopId) {
@@ -614,32 +617,28 @@ export function TrainMap({ searchQuery = "", center, origin, filterBannerActive 
                   <span style={{color: routeInfo.color}}>{routeInfo.name}</span>
                 </div>
 
-                <div className="flex flex-col gap-1 mt-1 text-sm bg-slate-900 text-slate-200 p-2 rounded-lg">
-                  {currentStop && (
-                    <div className="flex justify-between items-center">
-                      <span className="text-slate-400 text-xs uppercase tracking-wider">At/Near</span>
-                      <span className="font-medium">{currentStop}</span>
-                    </div>
-                  )}
-                  {nextStop && nextStop !== currentStop && (
-                    <div className="flex justify-between items-center">
-                      <span className="text-slate-400 text-xs uppercase tracking-wider">Next Stop</span>
-                      <span className="font-medium text-blue-400">{nextStop}</span>
-                    </div>
-                  )}
-                  {terminus && terminus !== currentStop && (
-                    <div className="flex justify-between items-center">
-                      <span className="text-slate-400 text-xs uppercase tracking-wider">Terminates</span>
-                      <span className="font-medium text-orange-400">{terminus}</span>
-                    </div>
-                  )}
-                  {speed !== null && speed > 0 && (
-                    <div className="flex justify-between items-center">
-                      <span className="text-slate-400 text-xs uppercase tracking-wider">Speed</span>
-                      <span className="font-medium">{speed} km/h</span>
-                    </div>
-                  )}
-                </div>
+                {(nextStop || terminus || (speed !== null && speed > 0)) && (
+                  <div className="flex flex-col gap-1 mt-1 text-sm bg-slate-900 text-slate-200 p-2 rounded-lg">
+                    {nextStop && (
+                      <div className="flex justify-between items-center">
+                        <span className="text-slate-400 text-xs uppercase tracking-wider">Next Stop</span>
+                        <span className="font-medium text-blue-400">{nextStop}</span>
+                      </div>
+                    )}
+                    {terminus && terminus !== nextStop && (
+                      <div className="flex justify-between items-center">
+                        <span className="text-slate-400 text-xs uppercase tracking-wider">Terminates</span>
+                        <span className="font-medium text-orange-400">{terminus}</span>
+                      </div>
+                    )}
+                    {speed !== null && speed > 0 && (
+                      <div className="flex justify-between items-center">
+                        <span className="text-slate-400 text-xs uppercase tracking-wider">Speed</span>
+                        <span className="font-medium">{speed} km/h</span>
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
             </Popup>
           </Marker>
