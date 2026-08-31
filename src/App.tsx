@@ -65,6 +65,7 @@ export default function App() {
   const [mapSearchQuery, setMapSearchQuery] = useState("");
   const [mapSearchContext, setMapSearchContext] = useState("");
   const [isListening, setIsListening] = useState(false);
+  const recognitionRef = useRef<any>(null);
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
 
   useEffect(() => {
@@ -101,9 +102,15 @@ export default function App() {
   };
 
   const handleVoiceSearch = () => {
+    // Already running — a second tap stops it.
+    if (recognitionRef.current) {
+      try { recognitionRef.current.stop(); } catch { /* noop */ }
+      return;
+    }
+
     const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
     if (!SpeechRecognition) {
-      alert("Voice search is not supported in this browser. Please use Chrome, Edge, or Safari.");
+      alert("Voice search isn't supported here. Try Chrome, Edge, or Safari — the packaged desktop app can't do voice search.");
       return;
     }
 
@@ -111,12 +118,30 @@ export default function App() {
     recognition.continuous = false;
     recognition.interimResults = false;
     recognition.lang = "en-AU";
+    recognition.maxAlternatives = 1;
+
+    // Keep a reference for the lifetime of the session — without this the browser
+    // can garbage-collect the recognition object mid-listen, which ends it
+    // instantly (the mic light flicks on then straight back off).
+    recognitionRef.current = recognition;
 
     recognition.onstart = () => setIsListening(true);
-    recognition.onend = () => setIsListening(false);
-    recognition.onerror = (e: any) => {
-      console.error("Speech error", e);
+    recognition.onend = () => {
       setIsListening(false);
+      recognitionRef.current = null;
+    };
+    recognition.onerror = (e: any) => {
+      setIsListening(false);
+      recognitionRef.current = null;
+      if (e?.error === "not-allowed" || e?.error === "service-not-allowed") {
+        alert("Microphone access is blocked. Allow the mic for this site in your browser settings and try again.");
+      } else if (e?.error === "no-speech") {
+        alert("Didn't catch that — tap the mic and say the station name.");
+      } else if (e?.error === "network") {
+        alert("Voice search needs an internet connection and isn't available in the packaged desktop app.");
+      } else if (e?.error && e.error !== "aborted") {
+        console.error("Speech recognition error:", e.error);
+      }
     };
 
     recognition.onresult = (event: any) => {
@@ -125,7 +150,14 @@ export default function App() {
       setSearchQuery(cleaned);
     };
 
-    recognition.start();
+    try {
+      recognition.start();
+    } catch (err) {
+      // start() throws if called while already starting — reset and let the user retry.
+      recognitionRef.current = null;
+      setIsListening(false);
+      console.error("Could not start voice search:", err);
+    }
   };
 
   const [searchResults, setSearchResults] = useState<any[]>([]);
